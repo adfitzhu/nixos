@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=all/all;inode/directory;
+Actions=showversions
+X-KDE-Priority=TopLevel
+
+[Desktop Action showversions]
+Name=Versions
+Icon=edit-undo
+Exec=dolphin-versions.py %F

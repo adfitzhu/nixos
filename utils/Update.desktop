@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Manual System Update
+Comment=Manually trigger a NixOS system update
+Exec=pkexec systemctl start my-auto-upgrade.service
+Icon=system-software-update
+Terminal=false
+Type=Application
+Categories=Utility;

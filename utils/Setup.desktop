@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Initial Setup
+Comment=Run post-install setup tasks (Tailscale, etc)
+Exec=/usr/local/nixos/utils/setup.sh
+Icon=utilities-terminal
+Terminal=true
+Type=Application
+Categories=Utility;

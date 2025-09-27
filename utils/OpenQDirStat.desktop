@@ -1,0 +1,11 @@
+[Desktop Action startqdirstat]
+Exec=/usr/bin/ bash -c ''"$PWD" | qdirstat''
+Icon=im-qq
+Name=Open QDirStat Here
+
+[Desktop Entry]
+Actions=startqdirstat
+Icon=im-qq
+MimeType=inode/directory;inode/mount-point;inode/*;
+ServiceTypes=KonqPopupMenu/Plugin
+Type=Service

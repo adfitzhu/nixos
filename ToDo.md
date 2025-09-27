@@ -1,0 +1,4 @@
+- [ ] Redo Readme
+- [ ] Look into more user settings like for digikam default folders and stuff
+- [ ] Look into bug with Firefox not opening auth links
+- [ ] Test branching for testing builds
