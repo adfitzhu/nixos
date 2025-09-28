@@ -1,7 +1,11 @@
 { config, pkgs, lib, unstable, ... }:
 
 {
-  imports = [ ../../bundles/desktop.nix ../../users/beth/user.nix ];
+  imports = [ 
+    ../../bundles/desktop.nix 
+    ../../users/beth/user.nix 
+   # ../../users/adam/user.nix
+    ];
 
   networking.hostName = "yactop";
 
