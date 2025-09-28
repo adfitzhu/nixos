@@ -4,14 +4,11 @@
   # Host-specific settings for alphanix
   imports = [
     ../../bundles/desktop.nix
+    ../../users/adam/user.nix.nixos
   ];
-
   networking.hostName = "alphanix";
 
-  users.users.adam = {
-    isNormalUser = true;
-    extraGroups = [ "networkmanager" "wheel" "vboxsf" "dialout" "audio" "video" "input" "docker" ];
-  };
+  # system user is imported from users/adam/user.nix (nixos fragment)
 
   environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
 
@@ -29,5 +26,4 @@
     autoLogin = { enable = true; user = "adam"; };
   };
 }
-# Thin wrapper so the flake can import the host directory
-import ./config.nix
+

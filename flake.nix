@@ -15,8 +15,9 @@
         hosts = builtins.attrNames (builtins.readDir ./hosts);
         users = builtins.attrNames (builtins.readDir ./users);
       in
-      {
-        nixosConfigurations = lib.listToAttrs (map (hostName: {
+      let
+        # Build a list of host-specific nixosSystem values once and reuse it.
+        hostSystems = map (hostName: {
           name = hostName;
           value = nixpkgs.lib.nixosSystem {
             inherit system;
@@ -29,18 +30,20 @@
               })
               # host-specific module (import the host directory or file)
               (import (./hosts + "/" + hostName))
-              # Home Manager integration and user imports
+              # Home Manager integration is available; hosts should opt-in and
+              # register specific users in their own modules.
               home-manager.nixosModules.home-manager
-              ({ config, pkgs, ... }: let
-                  userAttrs = lib.listToAttrs (map (u: { name = u; value = import (./users + "/" + u + "/user.nix"); }) users);
-                in {
-                  home-manager.useGlobalPkgs = true;
-                  home-manager.useUserPackages = true;
-                  home-manager.users = userAttrs;
-              })
             ];
           };
-        }) hosts);
+        }) hosts;
+      in
+      {
+        # Keep the canonical `nixosConfigurations` mapping (for compatibility)
+        nixosConfigurations = lib.listToAttrs hostSystems;
+
+        # Also expose a `hosts` mapping so you can reference a single host
+        # directly: `nix build .#hosts.<hostname>` (system defaults will apply).
+        hosts = lib.listToAttrs hostSystems;
       }
   );
 }

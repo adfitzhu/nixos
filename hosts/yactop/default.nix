@@ -1,16 +1,11 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports = [ ../../bundles/desktop.nix ];
+  imports = [ ../../bundles/desktop.nix ../../users/beth/user.nix.nixos ];
 
   networking.hostName = "yactop";
 
-  users.users.beth = {
-    isNormalUser = true;
-    group = "beth";
-    extraGroups = [ "networkmanager" "wheel" "vboxsf" "dialout" "audio" "video" "input" "docker" ];
-  };
-  users.groups.beth = {};
+  # system user imported from users/beth/user.nix
 
   environment.systemPackages = with pkgs; [ pkgs.obs-studio pkgs.droidcam pkgs.kdePackages.skanpage pkgs.audacity pkgs.clementine pkgs.superTuxKart ];
 
@@ -21,5 +16,12 @@
     sddm.wayland.enable = true;
     autoLogin = { enable = true; user = "beth"; };
   };
-}
-import ./config.nix
+
+  # Enable Home Manager on this host and wire Beth's Home Manager config
+  programs.home-manager.enable = true;
+
+  home-manager.users = {
+    beth = import ../../users/beth/home.nix;
+  };
+
+

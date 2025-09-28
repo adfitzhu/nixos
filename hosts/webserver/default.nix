@@ -12,5 +12,3 @@
   };
 
   services.nginx.enable = true;
-}
-import ./config.nix
