@@ -22,4 +22,4 @@
     beth = import ../../users/beth/home.nix;
   };
 
-
+}

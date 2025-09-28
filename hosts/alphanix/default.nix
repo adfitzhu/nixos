@@ -2,10 +2,13 @@
 
 {
   # Host-specific settings for alphanix
+
   imports = [
-     ../../bundles/desktop.nix
-     ../../users/adam/user.nix
+    ../../bundles/desktop.nix
+    ../../users/adam/user.nix 
+    ../../users/guest/user.nix
   ];
+
   networking.hostName = "alphanix";
 
   # system user is imported from users/adam/user.nix (nixos fragment)

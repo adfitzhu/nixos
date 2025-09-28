@@ -39,6 +39,12 @@
     {
       nixosConfigurations = hostAttrs;
       hosts = hostAttrs;
+
+  # Default host: prefer 'generic' if present, otherwise fall back to
+  # the first host in `hostAttrs` to avoid errors when a host folder
+  # hasn't been discovered yet.
+  default = if hostAttrs ? generic then hostAttrs.generic
+        else builtins.elemAt (lib.attrValues hostAttrs) 0;
     };
 }
 
