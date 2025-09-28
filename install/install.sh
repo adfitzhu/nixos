@@ -30,5 +30,5 @@ SELECTED_HOST="${HOSTS[$((HOST_NUM-1))]}"
 echo "Selected host: $SELECTED_HOST"
 
 # Run the installer for the selected host
-nixos-install --impure --no-write-lock-file --flake github:adfitzhu/nixos#hosts.${SELECTED_HOST}
+nixos-install --impure --no-write-lock-file --flake github:adfitzhu/nixos#${SELECTED_HOST}
 

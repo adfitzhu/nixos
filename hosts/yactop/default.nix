@@ -23,7 +23,7 @@
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
-  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --flake github:adfitzhu/nixos#hosts.yactop --no-write-lock-file --impure
+  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#yactop --no-write-lock-file --impure
     '';
   };
   systemd.timers.my-auto-upgrade = {
