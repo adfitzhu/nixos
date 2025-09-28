@@ -3,7 +3,7 @@
 let
   secretsPath = "/etc/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
-  syncthingId = secrets.syncthingServerId or "MRRPBZ3-VNO336P-4MBXUJC-265FSLR-UTRAQHR-QWVKXAK-4AQGXHE-5XWTDAH";
+  syncthingId = secrets.syncthingServerId or "N/A";
 in
 {
   home.stateVersion = "25.05";
@@ -18,6 +18,9 @@ in
     settings = {
       options = {
         extraFlags = [ "--no-default-folder" ];
+        urAccepted = -1;
+        urSeen = 9999;
+        crashReportingEnabled = false;
       };
       devices = {
         server = {

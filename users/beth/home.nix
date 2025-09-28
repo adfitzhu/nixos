@@ -18,6 +18,9 @@ in
     settings = {
       options = {
         extraFlags = [ "--no-default-folder" ];
+        urAccepted = -1;
+        urSeen = 9999;
+        crashReportingEnabled = false;
       };
       devices = {
         server = {
