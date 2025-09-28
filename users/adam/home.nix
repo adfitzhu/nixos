@@ -1,5 +1,10 @@
 { config, pkgs, lib, unstable, ... }:
-  
+
+let
+  secretsPath = "/etc/secrets/secrets.nix";
+  secrets = if builtins.pathExists secretsPath then import secretsPath else {};
+  syncthingId = secrets.syncthingServerId or "MRRPBZ3-VNO336P-4MBXUJC-265FSLR-UTRAQHR-QWVKXAK-4AQGXHE-5XWTDAH";
+in
 {
   home.stateVersion = "25.05";
 
@@ -16,7 +21,7 @@
       };
       devices = {
         server = {
-          id = "MRRPBZ3-VNO336P-4MBXUJC-265FSLR-UTRAQHR-QWVKXAK-4AQGXHE-5XWTDAH";
+          id = syncthingId;
           introducer = true; # Allow this device to introduce new devices
         };
       };
