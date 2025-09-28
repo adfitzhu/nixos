@@ -7,8 +7,8 @@
 
   services.syncthing = {
     enable = true;
-    tray.enable = true;
-    overrideFolders = true;
+    tray.enable = false;
+    overrideFolders = false;
     overrideDevices = false;
     settings = {
       options = {
