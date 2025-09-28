@@ -5,10 +5,11 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
+    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-flatpak, ... }:
+  outputs = { self, nixpkgs, home-manager, nix-flatpak, unstable, ... }:
     let
   # Discover hosts by listing the `hosts/` directory. Each directory
   # under `hosts/` is treated as a host name with a `default.nix` file.
@@ -16,9 +17,18 @@
   hosts = builtins.attrNames (builtins.readDir ./hosts);
 
       mkHost = system: hostName: let
-        pkgs = import nixpkgs { inherit system; };
+  pkgsBase = import nixpkgs { inherit system; };
+  unstablePkgs = import unstable { inherit system; config = pkgsBase.config or {}; };
+  # Expose unstable as an attribute on pkgs so modules can refer to
+  # `pkgs.unstable.<pkg>` without needing an extra injected variable.
+  pkgs = pkgsBase // { unstable = unstablePkgs; };
+        hostFilePath = builtins.toString ./hosts + "/" + hostName + "/default.nix";
       in nixpkgs.lib.nixosSystem {
         inherit system;
+        # Make `unstablePkgs` available to imported modules as the
+        # `unstable` argument via `specialArgs`. Module functions can
+        # accept `unstable` in their argument set and use it directly.
+        specialArgs = { unstable = unstablePkgs; };
         modules = [
           # Ensure Home Manager's NixOS module is available first so its
           # option declarations are registered before host modules run.
@@ -30,7 +40,7 @@
           })
           # Provide nix-flatpak module so services.flatpak.* options exist
           nix-flatpak.nixosModules.nix-flatpak
-          (import (builtins.toString ./hosts + "/" + hostName + "/default.nix"))
+          (import hostFilePath)
         ];
       };
 

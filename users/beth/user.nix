@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, unstable, ... }:
 
 {
   users.users.beth = {

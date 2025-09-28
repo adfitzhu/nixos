@@ -1,9 +1,4 @@
 { config, pkgs, ... }:
-let
-  unstable = import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
-  }) { config = config.nixpkgs.config or {}; };
-in
 {
   # Shared config for all hosts
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -44,7 +39,7 @@ in
     kdePackages.yakuake
     digikam
     (import ./utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
-    unstable.tailscale
+  pkgs.unstable.tailscale
   ];
   services.flatpak.enable = true;
   systemd.services.flatpak-repo = {
@@ -134,7 +129,7 @@ in
   services.openssh.enable = true;
   services.fail2ban.enable = true;
   services.tailscale.enable = true;
-  services.tailscale.package = unstable.tailscale;
+  services.tailscale.package = pkgs.unstable.tailscale;
   virtualisation.waydroid.enable = true;
     
   services.btrbk.instances = {

@@ -1,9 +1,4 @@
-{ config, pkgs, ... }:
-let
-  unstable = import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
-  }) { config = config.nixpkgs.config or {}; };
-in
+{ config, pkgs, unstable, ... }:
 {
   # Shared config for all desktop machines
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -44,7 +39,7 @@ in
     kdePackages.yakuake
     digikam
   (import ../utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
-    unstable.tailscale
+  unstable.tailscale
   ];
   services.flatpak.enable = true;
   systemd.services.flatpak-repo = {
@@ -58,7 +53,7 @@ in
   # Declarative Flatpak configuration (packages defined per host)
   services.flatpak.update.auto = {
     enable = true;
-    onCalendar = "weekly";
+    onCalendar = "daily";
   };
 
   services.flatpak.uninstallUnmanaged = false;
@@ -158,57 +153,7 @@ in
     "d /home/.snapshots 0755 root root"
   ];
 
-  # Custom Flatpak update service and timer
-  systemd.services.flatpak-auto-update = {
-    description = "Auto-update all Flatpaks (silent)";
-    serviceConfig.Type = "oneshot";
-    path = [ pkgs.flatpak ];
-    script = ''
-      set -euxo pipefail
-      LOGFILE="/var/log/flatpak-auto-update.log"
-      # Keep only the last 30 days of logs
-      if [ -f "$LOGFILE" ]; then
-        awk -v d="$(date --date='30 days ago' '+%Y-%m-%d')" 'BEGIN{keep=0} 
-          /^==== [0-9]{4}-[0-9]{2}-[0-9]{2}/ {keep=($2 >= d)} 
-          keep' "$LOGFILE" > "$LOGFILE.tmp" && mv "$LOGFILE.tmp" "$LOGFILE"
-      fi
-      {
-        echo "==== $(date +%F) ===="
-        ${pkgs.flatpak}/bin/flatpak update -y
-      } >> "$LOGFILE" 2>&1
-    '';
-  };
-  systemd.timers.flatpak-auto-update = {
-    description = "Run Flatpak auto-update daily";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "daily";
-      Persistent = true;
-    };
-  };
 
-  # Custom repo update (git clone/pull) service and timer
-  systemd.services.repo-auto-update = {
-    description = "Auto-update /usr/local/nixos repo (git pull/clone)";
-    serviceConfig.Type = "oneshot";
-    path = [ pkgs.git ];
-    script = ''
-      set -euxo pipefail
-      if [ -d /usr/local/nixos/.git ]; then
-        ${pkgs.git}/bin/git -C /usr/local/nixos pull --rebase || true
-      else
-        ${pkgs.git}/bin/git clone https://github.com/adfitzhu/nix.git /usr/local/nixos || true
-      fi
-    '';
-  };
-  systemd.timers.repo-auto-update = {
-    description = "Run repo auto-update weekly";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "weekly";
-      Persistent = true;
-    };
-  };
 
 nix.gc = {
   automatic = true;

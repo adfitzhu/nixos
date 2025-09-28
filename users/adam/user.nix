@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, unstable, ... }:
 
 {
   # system-level user and group for adam

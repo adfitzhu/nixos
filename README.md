@@ -17,7 +17,7 @@ This guide will help you install NixOS using this flake-based configuration, ful
 
 ### Step 2: Clone this repository to the correct location
 ```sh
-git clone https://github.com/adfitzhu/nix /tmp/nix
+git clone https://github.com/adfitzhu/nixos /tmp/nix
 ```
 
 ### Step 3: Run the installer

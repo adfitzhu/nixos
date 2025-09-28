@@ -1,5 +1,5 @@
 mkdir -p /mnt/usr/local
-git clone http://github.com/adfitzhu/nix /mnt/usr/local/nixos
+git clone https://github.com/adfitzhu/nixos /mnt/usr/local/nixos
 for userdir in /mnt/home/*; do
     desktop_dir=$userdir/Desktop
     if [ -d "$userdir" ]; then
