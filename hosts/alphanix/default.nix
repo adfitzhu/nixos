@@ -3,8 +3,8 @@
 {
   # Host-specific settings for alphanix
   imports = [
-    ../../bundles/desktop.nix
-    ../../users/adam/user.nix.nixos
+     ../../bundles/desktop.nix
+     ../../users/adam/user.nix
   ];
   networking.hostName = "alphanix";
 

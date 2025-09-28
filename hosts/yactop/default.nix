@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports = [ ../../bundles/desktop.nix ../../users/beth/user.nix.nixos ];
+  imports = [ ../../bundles/desktop.nix ../../users/beth/user.nix ];
 
   networking.hostName = "yactop";
 
@@ -17,9 +17,7 @@
     autoLogin = { enable = true; user = "beth"; };
   };
 
-  # Enable Home Manager on this host and wire Beth's Home Manager config
-  programs.home-manager.enable = true;
-
+  # Wire Beth's Home Manager config via home-manager.users
   home-manager.users = {
     beth = import ../../users/beth/home.nix;
   };

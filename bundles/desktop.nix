@@ -43,7 +43,7 @@ in
     vscode
     kdePackages.yakuake
     digikam
-    (import ./utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
+  (import ../utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
     unstable.tailscale
   ];
   services.flatpak.enable = true;

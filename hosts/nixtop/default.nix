@@ -1,7 +1,7 @@
 { config, pkgs, lib, ... }:
 
 {
-  imports = [ ../../bundles/desktop.nix ../../users/adam/user.nix.nixos ];
+  imports = [ ../../bundles/desktop.nix ../../users/adam/user.nix ];
 
   networking.hostName = "nixtop";
 
@@ -23,9 +23,7 @@
     autoLogin = { enable = true; user = "adam"; };
   };
 
-  # Enable Home Manager on this host and wire Adam's Home Manager config
-  programs.home-manager.enable = true;
-
+  # Wire Adam's Home Manager config via home-manager.users
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
   };

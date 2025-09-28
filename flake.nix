@@ -4,47 +4,42 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, home-manager, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        lib = pkgs.lib;
-        hosts = builtins.attrNames (builtins.readDir ./hosts);
-        users = builtins.attrNames (builtins.readDir ./users);
-      in
-      let
-        # Build a list of host-specific nixosSystem values once and reuse it.
-        hostSystems = map (hostName: {
-          name = hostName;
-          value = nixpkgs.lib.nixosSystem {
-            inherit system;
-            modules = [
-              ./hardware-configuration.nix
-              # small baseline
-              ({ config, pkgs, ... }: {
-                nix.settings.experimental-features = [ "nix-command" "flakes" ];
-                system.stateVersion = "25.05";
-              })
-              # host-specific module (import the host directory or file)
-              (import (./hosts + "/" + hostName))
-              # Home Manager integration is available; hosts should opt-in and
-              # register specific users in their own modules.
-              home-manager.nixosModules.home-manager
-            ];
-          };
-        }) hosts;
-      in
-      {
-        # Keep the canonical `nixosConfigurations` mapping (for compatibility)
-        nixosConfigurations = lib.listToAttrs hostSystems;
+  outputs = { self, nixpkgs, home-manager, nix-flatpak, ... }:
+    let
+      # Explicit host list. To add a host, add it here and create the folder
+      # under `hosts/<name>/default.nix`.
+      definedHosts = [ "alphanix" "nixtop" "yactop" "webserver" ];
 
-        # Also expose a `hosts` mapping so you can reference a single host
-        # directly: `nix build .#hosts.<hostname>` (system defaults will apply).
-        hosts = lib.listToAttrs hostSystems;
-      }
-  );
+      lib = nixpkgs.lib;
+
+      mkHost = system: hostName: let
+        pkgs = import nixpkgs { inherit system; };
+      in nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          # Ensure Home Manager's NixOS module is available first so its
+          # option declarations are registered before host modules run.
+          home-manager.nixosModules.home-manager
+          ./hardware-configuration.nix
+          ({ config, pkgs, ... }: {
+            nix.settings.experimental-features = [ "nix-command" "flakes" ];
+            system.stateVersion = "25.05";
+          })
+          # Provide nix-flatpak module so services.flatpak.* options exist
+          nix-flatpak.nixosModules.nix-flatpak
+          (import (builtins.toString ./hosts + "/" + hostName + "/default.nix"))
+        ];
+      };
+
+      hostAttrs = lib.listToAttrs (map (h: { name = h; value = mkHost "x86_64-linux" h; }) definedHosts);
+    in
+    {
+      nixosConfigurations = hostAttrs;
+      hosts = hostAttrs;
+    };
 }
 
