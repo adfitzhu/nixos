@@ -1,7 +1,11 @@
 { config, pkgs, lib, unstable, ... }:
 
 {
-  imports = [ ../../bundles/desktop.nix ../../users/adam/user.nix ];
+  imports = [
+    ../../bundles/desktop.nix
+    ../../users/adam/user.nix
+  #  ../../users/guest/user.nix
+  ];
 
   networking.hostName = "nixtop";
 
