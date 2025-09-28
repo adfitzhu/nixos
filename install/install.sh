@@ -4,42 +4,31 @@ nixos-generate-config --root /mnt
 cp /mnt/etc/nixos/hardware-configuration.nix /etc/nixos/hardware-configuration.nix
 
 # Find flake.nix one directory up
-FLAKE_FILE="$(dirname "$0")/../flake.nix"
+HOST_DIR="$(dirname "$0")/../hosts"
 
-# Extract host names from flake.nix: look for lines like 'name = nixpkgs.lib.nixosSystem {'
-HOSTS=$(awk '
-  /nixosConfigurations[[:space:]]*=/ {inBlock=1; depth=0; next}
-  inBlock {
-    nOpen = gsub(/{/, "{"); nClose = gsub(/}/, "}"); depth += nOpen - nClose
-    if (/^[[:space:]]*[a-zA-Z0-9_-]+[[:space:]]*=[[:space:]]*nixpkgs\.lib\.nixosSystem/) {
-      match($0, /^[[:space:]]*([a-zA-Z0-9_-]+)[[:space:]]*=/, m)
-      if (m[1] != "") print m[1]
-    }
-    if (inBlock && depth < 0) inBlock=0
-  }
-' "$FLAKE_FILE")
+# List directories under hosts/ and present them to the user.
+mapfile -t HOSTS < <(find "$HOST_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
 
-# Convert to array for POSIX sh
-set -- $HOSTS
+if [ ${#HOSTS[@]} -eq 0 ]; then
+  echo "No hosts found in $HOST_DIR"
+  exit 1
+fi
 
-# Present hosts as a numbered list
 echo "Available hosts:"
-i=1
-for host in "$@"; do
-    printf "%d) %s\n" "$i" "$host"
-    i=$((i+1))
+for i in "${!HOSTS[@]}"; do
+  printf "%d) %s\n" $((i+1)) "${HOSTS[i]}"
 done
 
-# Prompt user to select a host
 read -p "Select a host number: " HOST_NUM
 
-# Validate input
-if [ "$HOST_NUM" -ge 1 ] 2>/dev/null && [ "$HOST_NUM" -le $# ]; then
-    eval SELECTED_HOST=\${$HOST_NUM}
-    echo "Selected host: $SELECTED_HOST"
-else
-    echo "Invalid selection."
-    exit 1
+if ! printf '%s' "$HOST_NUM" | grep -Eq '^[0-9]+$' || [ "$HOST_NUM" -lt 1 ] || [ "$HOST_NUM" -gt ${#HOSTS[@]} ]; then
+  echo "Invalid selection."
+  exit 1
 fi
-nixos-install --impure --no-write-lock-file --flake github:adfitzhu/nix#$SELECTED_HOST 
+
+SELECTED_HOST="${HOSTS[$((HOST_NUM-1))]}"
+echo "Selected host: $SELECTED_HOST"
+
+# Run the installer for the selected host
+nixos-install --impure --no-write-lock-file --flake github:adfitzhu/nix#$SELECTED_HOST
 

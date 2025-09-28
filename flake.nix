@@ -10,11 +10,10 @@
 
   outputs = { self, nixpkgs, home-manager, nix-flatpak, ... }:
     let
-      # Explicit host list. To add a host, add it here and create the folder
-      # under `hosts/<name>/default.nix`.
-      definedHosts = [ "alphanix" "nixtop" "yactop" "webserver" ];
-
-      lib = nixpkgs.lib;
+  # Discover hosts by listing the `hosts/` directory. Each directory
+  # under `hosts/` is treated as a host name with a `default.nix` file.
+  lib = nixpkgs.lib;
+  hosts = builtins.attrNames (builtins.readDir ./hosts);
 
       mkHost = system: hostName: let
         pkgs = import nixpkgs { inherit system; };
@@ -35,7 +34,7 @@
         ];
       };
 
-      hostAttrs = lib.listToAttrs (map (h: { name = h; value = mkHost "x86_64-linux" h; }) definedHosts);
+  hostAttrs = lib.listToAttrs (map (h: { name = h; value = mkHost "x86_64-linux" h; }) hosts);
     in
     {
       nixosConfigurations = hostAttrs;
