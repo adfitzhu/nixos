@@ -22,6 +22,7 @@
     "com.obsproject.Studio"
     "com.github.tchx84.Flatseal"
   ];
+  services.desktopManager.plasma6.enable = true;
 
   services.displayManager = {
     sddm.enable = true;
