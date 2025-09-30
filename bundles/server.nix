@@ -1,0 +1,110 @@
+{ config, pkgs, unstable, ... }:
+{
+  # Shared config for all desktop machines
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nixpkgs.config.allowUnfree = true;
+  programs.nix-ld.enable = true;
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
+  boot.loader.efi.canTouchEfiVariables = true;
+  networking.networkmanager.enable = true;
+  system.stateVersion = "25.05";
+
+
+  environment.systemPackages = with pkgs; [
+    flatpak
+    git
+    vlc
+    p7zip
+    corefonts
+    vista-fonts
+    btrfs-progs
+    btrbk
+    python3Full
+    python3Packages.pyqt6
+    #unstable.tailscale
+  ];
+  services.flatpak.enable = true;
+  systemd.services.flatpak-repo = {
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.flatpak ];
+    script = ''
+      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    '';
+  };
+
+  # Declarative Flatpak configuration (packages defined per host)
+  services.flatpak.update.auto = {
+    enable = true;
+    onCalendar = "daily";
+  };
+
+  services.flatpak.uninstallUnmanaged = false;
+
+  # Global flatpak overrides - allows all apps access to home directory
+  services.flatpak.overrides = {
+    global = {
+      Context.filesystems = [ "home" ];
+    };
+  };
+  time.timeZone = "America/Los_Angeles";
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    extraLocaleSettings = {
+      LC_ADDRESS = "en_US.UTF-8";
+      LC_IDENTIFICATION = "en_US.UTF-8";
+      LC_MEASUREMENT = "en_US.UTF-8";
+      LC_MONETARY = "en_US.UTF-8";
+      LC_NAME = "en_US.UTF-8";
+      LC_NUMERIC = "en_US.UTF-8";
+      LC_PAPER = "en_US.UTF-8";
+      LC_TELEPHONE = "en_US.UTF-8";
+      LC_TIME = "en_US.UTF-8";
+    };
+  };
+
+
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+  
+  security.rtkit.enable = true;
+
+  services.openssh.enable = true;
+  services.fail2ban.enable = true;
+  services.tailscale.enable = true;
+  #services.tailscale.package = unstable.tailscale;
+    
+  services.btrbk.instances = {
+    "home" = {
+      onCalendar = "hourly";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "1d";
+        snapshot_preserve = "6h 7d 4w 3m";
+        volume = {
+          "/home" = {
+            snapshot_dir = ".snapshots";
+            subvolume = ".";
+          };
+        };
+      };
+    };
+  };
+  # Ensure /home/.snapshots exists for btrbk
+  systemd.tmpfiles.rules = [
+    "d /home/.snapshots 0755 root root"
+  ];
+
+# Enable VirtualBox guest additions when this system runs as a VirtualBox VM
+virtualisation.virtualbox.guest.enable = true;
+services.xserver.videoDrivers = [ "virtualbox" ];
+
+nix.gc = {
+  automatic = true;
+  dates = "weekly";
+  options = "--delete-older-than 30d";
+};
+}
