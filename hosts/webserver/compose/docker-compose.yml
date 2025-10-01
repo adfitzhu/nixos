@@ -1,0 +1,67 @@
+version: "3.9"
+
+# This compose file runs:
+# - Nextcloud AIO launcher (exposes Nextcloud stack on 11000 internally)
+# - One example WordPress stack (wp1) bound to 127.0.0.1:8001
+# Caddy (running as a NixOS service) proxies public traffic to these.
+
+services:
+  # Nextcloud All-in-One: only the launcher container here; it will manage its own internal stack.
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    container_name: nextcloud-aio-mastercontainer
+    restart: unless-stopped
+    # Bind only to loopback; Caddy will proxy from the public internet.
+    ports:
+      - "127.0.0.1:8080:8080"   # AIO admin interface and initial setup
+      # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+    environment:
+      - AIO_DISABLE_BACKUP_SECTION=true
+      # Set your domain so AIO configures trusted proxies correctly
+      - APACHE_IP_BINDING=127.0.0.1
+      # If running behind Caddy with HTTPS, AIO can auto-detect forwarded headers.
+    networks:
+      - backend
+
+  # Example WordPress site (wp1)
+  wp1-db:
+    image: mariadb:11
+    restart: unless-stopped
+    # Load DB credentials from host file (not committed). Expected keys:
+    #   MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD
+    env_file:
+      - /etc/secrets/wp1.env
+    volumes:
+      - wp1_db:/var/lib/mysql
+    networks:
+      - backend
+
+  wp1:
+    image: wordpress:6.6-php8.2-apache
+    depends_on:
+      - wp1-db
+    restart: unless-stopped
+    # Load app DB credentials from the same host file. Expected keys:
+    #   WORDPRESS_DB_HOST (optional; default set below), WORDPRESS_DB_USER,
+    #   WORDPRESS_DB_PASSWORD, WORDPRESS_DB_NAME
+    env_file:
+      - /etc/secrets/wp1.env
+    environment:
+      - WORDPRESS_DB_HOST=wp1-db:3306
+    volumes:
+      - wp1_html:/var/www/html
+    ports:
+      - "127.0.0.1:8001:80"
+    networks:
+      - backend
+
+volumes:
+  nextcloud_aio_mastercontainer:
+  wp1_db:
+  wp1_html:
+
+networks:
+  backend:
+    driver: bridge
