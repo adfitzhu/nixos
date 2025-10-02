@@ -22,6 +22,7 @@
     btrbk
     python3Full
     python3Packages.pyqt6
+    docker-compose
     #unstable.tailscale
   ];
   services.flatpak.enable = true;
@@ -107,4 +108,41 @@ nix.gc = {
   dates = "weekly";
   options = "--delete-older-than 30d";
 };
+
+  # Docker defaults for server hosts
+  virtualisation.docker = {
+    enable = true;
+    storageDriver = "overlay2";
+    autoPrune = {
+      enable = true;
+      dates = "daily";
+      flags = [ "--all" "--volumes" ];
+    };
+    daemon.settings = {
+      "log-driver" = "json-file";
+      "log-opts" = {
+        "max-size" = "10m";
+        "max-file" = "3";
+      };
+    };
+  };
+
+  # Weekly prune of Docker builder cache older than 7 days
+  systemd.services.docker-builder-prune-weekly = {
+    description = "Prune Docker builder cache older than 7 days";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.docker}/bin/docker builder prune --filter until=168h -f";
+    };
+  };
+  systemd.timers.docker-builder-prune-weekly = {
+    description = "Weekly Docker builder cache prune";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+    };
+  };
 }

@@ -1,5 +1,9 @@
 { config, pkgs, lib, unstable, ... }:
 
+let
+  secretsPath = "/etc/secrets/secrets.nix";
+  secrets = if builtins.pathExists secretsPath then import secretsPath else {};
+in
 {
   imports = [
    #../../bundles/desktop.nix
@@ -10,14 +14,9 @@
 
   networking.hostName = "webserver";
 
-  # Enable Docker runtime for app containers managed via docker-compose in this host folder
-  virtualisation.docker.enable = true;
+  # Docker is configured centrally in bundles/server.nix
 
-  environment.systemPackages = with pkgs; [ 
-    docker-compose
-
-
-   ];
+  environment.systemPackages = with pkgs; [ ];
 
   services.flatpak.packages = [
 
@@ -26,11 +25,10 @@
   # Caddy reverse proxy (recommended to run as a NixOS service for ACME + systemd integration)
   services.caddy = {
     enable = true;
-    # Set your email for ACME/Let’s Encrypt notifications
-    # email = "you@example.com";
+    # ACME/Let’s Encrypt email (read from /etc/secrets/secrets.nix)
+    email = secrets.caddyEmail or null;
     virtualHosts = {
-      # Nextcloud (AIO behind Caddy). Replace with your real domain.
-      "cloud.example.com".extraConfig = ''
+      "cloud.fitzworks.net".extraConfig = ''
         encode zstd gzip
         # Well-known redirects required by Nextcloud
         redir /.well-known/carddav /remote.php/dav 301
@@ -48,26 +46,24 @@
         }
       '';
 
-      # WordPress example site
-      "wp1.example.com".extraConfig = ''
+      "theyoungartistsclub.com".extraConfig = ''
         encode zstd gzip
-        reverse_proxy 127.0.0.1:8001
+        reverse_proxy 127.0.0.1:8002 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
       '';
 
-      # Optional: expose the AIO admin UI behind auth; otherwise keep it on 127.0.0.1:8080 only.
-      # "aio.example.com".extraConfig = ''
-      #   encode zstd gzip
-      #   basicauth {
-      #     # user: bcrypt hash (generate with "caddy hash-password --plaintext <pwd>")
-      #     admin $2a$14$exampleexampleexampleexampleexampleexampleexample
-      #   }
-      #   reverse_proxy 127.0.0.1:8080
-      # '';
-
-      # AdGuard Home admin UI (if enabled as a host service on port 3000)
-      "adguard.example.com".extraConfig = ''
-        reverse_proxy 127.0.0.1:3000
+      "eliandthefoodallergies.fitzworks.net".extraConfig = ''
+        encode zstd gzip
+        reverse_proxy 127.0.0.1:8003 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
       '';
+
     };
   };
 
@@ -79,12 +75,10 @@
     "d /etc/secrets 0750 root root -"
   ];
 
-  # If you want to run AdGuard Home on the host (recommended for DNS on port 53),
-  # uncomment this and complete initial setup via the web UI at adguard.example.com.
-  # services.adguardhome = {
-  #   enable = true;
-  #   openFirewall = true; # opens 53/udp+tcp and the UI port
-  # };
+  services.adguardhome = {
+    enable = true;
+    openFirewall = true; # opens 53/udp+tcp and the UI port
+  };
 
   services.desktopManager.plasma6.enable = true;
   services.displayManager = {
@@ -109,4 +103,5 @@
         Persistent = true;
       };
     };
+
 }

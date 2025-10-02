@@ -1,8 +1,6 @@
 version: "3.9"
 
-# This compose file runs:
-# - Nextcloud AIO launcher (exposes Nextcloud stack on 11000 internally)
-# - One example WordPress stack (wp1) bound to 127.0.0.1:8001
+
 # Caddy (running as a NixOS service) proxies public traffic to these.
 
 services:
@@ -16,7 +14,8 @@ services:
       - "127.0.0.1:8080:8080"   # AIO admin interface and initial setup
       # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
     volumes:
-      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      # Use a host bind mount so data lives under your chosen path
+      - /vol/nextcloud/aio-config:/mnt/docker-aio-config
     environment:
       - AIO_DISABLE_BACKUP_SECTION=true
       # Set your domain so AIO configures trusted proxies correctly
@@ -25,42 +24,71 @@ services:
     networks:
       - backend
 
-  # Example WordPress site (wp1)
-  wp1-db:
-    image: mariadb:11
-    restart: unless-stopped
-    # Load DB credentials from host file (not committed). Expected keys:
-    #   MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD
-    env_file:
-      - /etc/secrets/wp1.env
+  theyoungartistsclub-db:
+    image: mariadb
+    container_name: theyoungartistsclub-db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
-      - wp1_db:/var/lib/mysql
+      - /vol/artists/theyoungartistsclub-db:/var/lib/mysql
+    # Secrets for DB credentials (expects MYSQL_* vars)
+    env_file:
+      - /etc/secrets/tyac.env
     networks:
       - backend
 
-  wp1:
-    image: wordpress:6.6-php8.2-apache
+
+  allergy-db:
+    image: mariadb
+    container_name: allergy-db
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - /vol/allergy/allergy-db:/var/lib/mysql
+    # Secrets for DB credentials (expects MYSQL_* vars)
+    env_file:
+      - /etc/secrets/allergy.env
+    networks:
+      - backend
+
+
+  theyoungartistsclub:
+    image: wordpress
+    container_name: theyoungartistsclub
+    restart: always
     depends_on:
-      - wp1-db
-    restart: unless-stopped
-    # Load app DB credentials from the same host file. Expected keys:
-    #   WORDPRESS_DB_HOST (optional; default set below), WORDPRESS_DB_USER,
-    #   WORDPRESS_DB_PASSWORD, WORDPRESS_DB_NAME
-    env_file:
-      - /etc/secrets/wp1.env
-    environment:
-      - WORDPRESS_DB_HOST=wp1-db:3306
-    volumes:
-      - wp1_html:/var/www/html
+      - theyoungartistsclub-db
     ports:
-      - "127.0.0.1:8001:80"
+      - "127.0.0.1:8002:80"
+    # Secrets for app DB config (expects WORDPRESS_DB_* vars)
+    env_file:
+      - /etc/secrets/tyac.env
+    environment:
+      - WORDPRESS_DB_HOST=theyoungartistsclub-db:3306
+    volumes:
+      - /vol/artists/theyoungartistsclub:/var/www/html
+      - /vol/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
     networks:
       - backend
 
-volumes:
-  nextcloud_aio_mastercontainer:
-  wp1_db:
-  wp1_html:
+  allergy:
+    image: wordpress
+    container_name: allergy
+    restart: always
+    depends_on:
+      - allergy-db
+    ports:
+      - "127.0.0.1:8003:80"
+    # Secrets for app DB config (expects WORDPRESS_DB_* vars)
+    env_file:
+      - /etc/secrets/allergy.env
+    environment:
+      - WORDPRESS_DB_HOST=allergy-db:3306
+    volumes:
+      - /vol/allergy/allergy:/var/www/html
+      - /vol/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    networks:
+      - backend
 
 networks:
   backend:
