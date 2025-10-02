@@ -14,8 +14,6 @@ in
 
   networking.hostName = "webserver";
 
-  # Docker is configured centrally in bundles/server.nix
-
   environment.systemPackages = with pkgs; [ ];
 
   services.flatpak.packages = [
@@ -85,6 +83,32 @@ in
     sddm.enable = true;
     sddm.wayland.enable = true;
     autoLogin = { enable = true; user = "adam"; };
+  };
+
+  # Auto-update all compose services except Nextcloud AIO (no need to list each site)
+  systemd.services.compose-autoupdate-except-nextcloud = {
+    description = "Auto-update docker-compose services except Nextcloud AIO";
+    after = [ "network-online.target" "docker.service" ];
+    requires = [ "docker.service" ];
+    path = [ pkgs.docker pkgs.docker-compose pkgs.gnugrep pkgs.coreutils ];
+    script = ''
+      set -euo pipefail
+      cd /home/adam/github/nixos/hosts/webserver/compose
+      services=$(docker-compose config --services | grep -v '^nextcloud-aio-mastercontainer$' || true)
+      if [ -n "$services" ]; then
+        docker-compose pull $services
+        docker-compose up -d $services
+      fi
+    '';
+    serviceConfig = { Type = "oneshot"; };
+  };
+  systemd.timers.compose-autoupdate-except-nextcloud = {
+    description = "Nightly auto-update of compose services (excluding Nextcloud AIO)";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "daily";
+      Persistent = true;
+    };
   };
 
     systemd.services.my-auto-upgrade = {
