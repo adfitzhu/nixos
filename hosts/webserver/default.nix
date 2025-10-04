@@ -3,6 +3,19 @@
 let
   secretsPath = "/etc/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
+
+  dynDnsDomains = secrets.dyndnsDomains or "";
+
+  dynDnsApiKey = secrets.dyndnsApiKey or "";
+  domainNextcloud = secrets.nextcloud or "";
+  domainTyac = secrets.theyoungartistsclub or "";
+  domainAllergy = secrets.allergy or "";
+
+  # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
+  composeFile = ./compose/docker-compose.yml;
+
+  # Helper to build a virtualHost attr only if domain provided
+  mkVHost = domain: cfg: lib.optionalAttrs (domain != "") { "${domain}" = { extraConfig = cfg; }; };
 in
 {
   imports = [
@@ -25,8 +38,9 @@ in
     enable = true;
     # ACME/Let’s Encrypt email (read from /etc/secrets/secrets.nix)
     email = secrets.caddyEmail or null;
-    virtualHosts = {
-      "cloud.fitzworks.net".extraConfig = ''
+    # Build virtualHosts dynamically from secrets; hosts omitted if domain not set.
+    virtualHosts =
+      (mkVHost domainNextcloud ''
         encode zstd gzip
         # Well-known redirects required by Nextcloud
         redir /.well-known/carddav /remote.php/dav 301
@@ -42,27 +56,23 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-      '';
-
-      "theyoungartistsclub.com".extraConfig = ''
+      '') //
+      (mkVHost domainTyac ''
         encode zstd gzip
         reverse_proxy 127.0.0.1:8002 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-      '';
-
-      "eliandthefoodallergies.fitzworks.net".extraConfig = ''
+      '') //
+      (mkVHost domainAllergy ''
         encode zstd gzip
         reverse_proxy 127.0.0.1:8003 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-      '';
-
-    };
+      '');
   };
 
   # Open HTTP/HTTPS for Caddy
@@ -71,6 +81,19 @@ in
   # Ensure host secrets directory exists for docker-compose env files
   systemd.tmpfiles.rules = [
     "d /etc/secrets 0750 root root -"
+    "d /var/lib/dyndns 0750 root root -"
+    # Docker compose stack volume roots (ensure exist with sane perms)
+    "d /vol 0755 root root -"
+    "d /vol/nextcloud 0750 root root -"
+    "d /vol/nextcloud/aio-config 0750 root root -"
+    "d /vol/artists 0750 root root -"
+    "d /vol/artists/theyoungartistsclub-db 0750 root root -"
+    "d /vol/artists/theyoungartistsclub 0750 root root -"
+    "d /vol/allergy 0750 root root -"
+    "d /vol/allergy/allergy-db 0750 root root -"
+    "d /vol/allergy/allergy 0750 root root -"
+    # uploads.ini host file placeholder (Compose maps /vol/uploads.ini)
+    "f /vol/uploads.ini 0644 root root -"
   ];
 
   services.adguardhome = {
@@ -85,30 +108,19 @@ in
     autoLogin = { enable = true; user = "adam"; };
   };
 
-  # Auto-update all compose services except Nextcloud AIO (no need to list each site)
-  systemd.services.compose-autoupdate-except-nextcloud = {
-    description = "Auto-update docker-compose services except Nextcloud AIO";
-    after = [ "network-online.target" "docker.service" ];
-    requires = [ "docker.service" ];
-    path = [ pkgs.docker pkgs.docker-compose pkgs.gnugrep pkgs.coreutils ];
-    script = ''
-      set -euo pipefail
-      cd /home/adam/github/nixos/hosts/webserver/compose
-      services=$(docker-compose config --services | grep -v '^nextcloud-aio-mastercontainer$' || true)
-      if [ -n "$services" ]; then
-        docker-compose pull $services
-        docker-compose up -d $services
-      fi
-    '';
-    serviceConfig = { Type = "oneshot"; };
-  };
-  systemd.timers.compose-autoupdate-except-nextcloud = {
-    description = "Nightly auto-update of compose services (excluding Nextcloud AIO)";
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "daily";
-      Persistent = true;
-    };
+  # Watchtower container: auto-updates only labeled containers (skips Nextcloud AIO by omitting label)
+  virtualisation.oci-containers.backend = "docker";
+  virtualisation.oci-containers.containers.watchtower = {
+    image = "containrrr/watchtower:latest";
+    autoStart = true;
+    volumes = [ "/var/run/docker.sock:/var/run/docker.sock" ];
+    cmd = [
+      "--interval" "3600"          # check hourly
+      "--label-enable"              # only update containers with enable label
+      "--cleanup"                   # remove old images after update
+      "--rolling-restart"           # restart sequentially
+    ];
+    restartPolicy = "unless-stopped";
   };
 
     systemd.services.my-auto-upgrade = {
@@ -127,5 +139,78 @@ in
         Persistent = true;
       };
     };
+
+  # Dynamic DNS updater (checks external IP every 5m and updates when changed)
+  systemd.services.dyndns-update = {
+    description = "Dynamic DNS update if external IP changed";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = ''
+        /bin/sh -eu -o pipefail -c '
+          CURL=${pkgs.curl}/bin/curl
+          LAST_FILE=/var/lib/dyndns/last_ip
+          CURRENT_IP=$($CURL -fsS https://ifconfig.co || $CURL -fsS https://api.ipify.org || echo "")
+          if [ -z "$CURRENT_IP" ]; then
+            echo "[dyndns] Unable to determine current IP" >&2; exit 0; fi
+          LAST_IP=""; [ -f "$LAST_FILE" ] && LAST_IP=$(cat "$LAST_FILE" || true)
+          if [ "$CURRENT_IP" = "$LAST_IP" ]; then
+            echo "[dyndns] IP unchanged ($CURRENT_IP)" >&2; exit 0; fi
+          if [ -z "${API_KEY:-}" ]; then
+            echo "[dyndns] Missing API_KEY" >&2; exit 1; fi
+          # Allow DOMAINS to be provided via EnvironmentFile or injected from secrets.nix.
+          if [ -z "${DOMAINS:-}" ]; then
+            echo "[dyndns] No DOMAINS provided (nothing to update)" >&2; exit 1; fi
+          BASE_URL="https://api.dnsexit.com/dns/ud/?apikey=${API_KEY}"
+          # Expect DOMAINS as a pre-formatted comma-separated list (e.g. host1.example.com,host2.example.com)
+          # Keep it simple: no normalization beyond a basic empty check performed earlier.
+          RESP=$($CURL -fsS -X POST -d "host=${DOMAINS}" "$BASE_URL" || true)
+          [ -n "$RESP" ] && echo "[dyndns] Update response: $RESP" >&2 || echo "[dyndns] Empty response" >&2
+          echo "$CURRENT_IP" > "$LAST_FILE.tmp" && mv "$LAST_FILE.tmp" "$LAST_FILE" && chmod 0640 "$LAST_FILE" || true
+        '
+      '';
+    };
+    path = [ pkgs.curl pkgs.coreutils ];
+    # Inject DOMAINS and API_KEY from secrets.nix if provided there.
+    environment =
+      (lib.optionalAttrs (dynDnsDomains != "") { DOMAINS = dynDnsDomains; }) //
+      (lib.optionalAttrs (dynDnsApiKey != "") { API_KEY = dynDnsApiKey; });
+  };
+  systemd.timers.dyndns-update = {
+    description = "Periodic Dynamic DNS check";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "30s";          # first check ~30s after boot
+      OnUnitActiveSec = "2m";      # run every 2 minutes thereafter
+      RandomizedDelaySec = "30s";  # add up to 30s jitter to avoid fixed schedule
+      Persistent = true;            # catch up if system was asleep/off
+    };
+  };
+
+  # Systemd-managed docker compose stack (declarative start). This runs `docker compose up -d`
+  # using the compose file embedded in the Nix store so changes trigger restarts.
+  systemd.services.docker-compose-webstack = {
+    description = "Docker Compose web stack (Nextcloud AIO + WordPress sites)";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    restartTriggers = [ composeFile ];
+    path = [ pkgs.docker pkgs.coreutils pkgs.bash ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true; # So systemd thinks it's active after the up -d completes
+    };
+    script = ''
+      set -euo pipefail
+      echo "[compose-webstack] Bringing stack up" >&2
+      docker compose -f ${composeFile} up -d --remove-orphans
+    '';
+    preStop = ''
+      set -euo pipefail
+      echo "[compose-webstack] Stopping stack" >&2
+      docker compose -f ${composeFile} down
+    '';
+  };
 
 }

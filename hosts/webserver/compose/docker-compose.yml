@@ -29,6 +29,8 @@ services:
     container_name: theyoungartistsclub-db
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /vol/artists/theyoungartistsclub-db:/var/lib/mysql
     # Secrets for DB credentials (expects MYSQL_* vars)
@@ -43,6 +45,8 @@ services:
     container_name: allergy-db
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     volumes:
       - /vol/allergy/allergy-db:/var/lib/mysql
     # Secrets for DB credentials (expects MYSQL_* vars)
@@ -60,6 +64,8 @@ services:
       - theyoungartistsclub-db
     ports:
       - "127.0.0.1:8002:80"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     # Secrets for app DB config (expects WORDPRESS_DB_* vars)
     env_file:
       - /etc/secrets/tyac.env
@@ -79,6 +85,8 @@ services:
       - allergy-db
     ports:
       - "127.0.0.1:8003:80"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     # Secrets for app DB config (expects WORDPRESS_DB_* vars)
     env_file:
       - /etc/secrets/allergy.env
