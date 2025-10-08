@@ -1,7 +1,7 @@
 { config, pkgs, lib, unstable, ... }:
 
 let
-  secretsPath = "/etc/secrets/secrets.nix";
+  secretsPath = "/vol/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
   syncthingId = secrets.syncthingServerId or "N/A";
 in

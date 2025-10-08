@@ -35,7 +35,7 @@ services:
       - /vol/artists/theyoungartistsclub-db:/var/lib/mysql
     # Secrets for DB credentials (expects MYSQL_* vars)
     env_file:
-      - /etc/secrets/tyac.env
+      - /vol/secrets/tyac.env
     networks:
       - backend
 
@@ -51,7 +51,7 @@ services:
       - /vol/allergy/allergy-db:/var/lib/mysql
     # Secrets for DB credentials (expects MYSQL_* vars)
     env_file:
-      - /etc/secrets/allergy.env
+      - /vol/secrets/allergy.env
     networks:
       - backend
 
@@ -68,7 +68,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     # Secrets for app DB config (expects WORDPRESS_DB_* vars)
     env_file:
-      - /etc/secrets/tyac.env
+      - /vol/secrets/tyac.env
     environment:
       - WORDPRESS_DB_HOST=theyoungartistsclub-db:3306
     volumes:
@@ -89,7 +89,7 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     # Secrets for app DB config (expects WORDPRESS_DB_* vars)
     env_file:
-      - /etc/secrets/allergy.env
+      - /vol/secrets/allergy.env
     environment:
       - WORDPRESS_DB_HOST=allergy-db:3306
     volumes:

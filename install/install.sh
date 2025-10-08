@@ -36,24 +36,25 @@ chmod 0700 "$TMP_SECRETS_DIR"
 
 echo
 echo "If you have a secrets.nix for this host, copy it to $TMP_SECRETS_DIR now."
-echo "It will be copied into /etc/secrets for the installer run and into /mnt/etc/secrets for the installed system." 
+echo "It will be copied into /vol/secrets for the installer run and into /mnt/vol/secrets for the installed system." 
 read -p "Press ENTER to continue after copying (or Ctrl-C to cancel)..." _
 
 SECRETS_SRC="$TMP_SECRETS_DIR/secrets.nix"
 if [ -f "$SECRETS_SRC" ]; then
-  echo "Found $SECRETS_SRC — installing into /etc/secrets and /mnt/etc/secrets"
-  mkdir -p /etc/secrets
-  chmod 0700 /etc/secrets
-  cp -f "$SECRETS_SRC" /etc/secrets/secrets.nix
-  chown root:root /etc/secrets/secrets.nix
-  chmod 0600 /etc/secrets/secrets.nix
+  echo "Found $SECRETS_SRC — installing into /vol/secrets and /mnt/vol/secrets"
+  echo "Found $SECRETS_SRC — installing into /vol/secrets and /mnt/vol/secrets"
+  mkdir -p /vol/secrets
+  chmod 0700 /vol/secrets
+  cp -f "$SECRETS_SRC" /vol/secrets/secrets.nix
+  chown root:root /vol/secrets/secrets.nix
+  chmod 0600 /vol/secrets/secrets.nix
 
   # Also copy into the target root so the installed system has it after first boot
-  mkdir -p /mnt/etc/secrets
-  chmod 0700 /mnt/etc/secrets
-  cp -f "$SECRETS_SRC" /mnt/etc/secrets/secrets.nix
-  chown root:root /mnt/etc/secrets/secrets.nix
-  chmod 0600 /mnt/etc/secrets/secrets.nix
+  mkdir -p /mnt/vol/secrets
+  chmod 0700 /mnt/vol/secrets
+  cp -f "$SECRETS_SRC" /mnt/vol/secrets/secrets.nix
+  chown root:root /mnt/vol/secrets/secrets.nix
+  chmod 0600 /mnt/vol/secrets/secrets.nix
 else
   echo "No secrets.nix found in $TMP_SECRETS_DIR — continuing without host secrets."
 fi

@@ -5,6 +5,7 @@
 
   imports = [
     ../../bundles/desktop.nix
+    ../../bundles/server.nix
     ../../users/adam/user.nix
     ../../users/guest/user.nix
   ];
@@ -14,6 +15,8 @@
   # system user is imported from users/adam/user.nix (nixos fragment)
 
   environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
+
+  virtualisation.waydroid.enable = true;
 
   services.flatpak.packages = [
     "com.usebottles.bottles"

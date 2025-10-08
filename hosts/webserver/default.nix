@@ -1,7 +1,7 @@
 { config, pkgs, lib, unstable, ... }:
 
 let
-  secretsPath = "/etc/secrets/secrets.nix";
+  secretsPath = "/vol/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
 
   dynDnsDomains = secrets.dyndnsDomains or "";
@@ -36,7 +36,7 @@ in
   # Caddy reverse proxy (recommended to run as a NixOS service for ACME + systemd integration)
   services.caddy = {
     enable = true;
-    # ACME/Let’s Encrypt email (read from /etc/secrets/secrets.nix)
+  # ACME/Let’s Encrypt email (read from /vol/secrets/secrets.nix)
     email = secrets.caddyEmail or null;
     # Build virtualHosts dynamically from secrets; hosts omitted if domain not set.
     virtualHosts =
@@ -80,7 +80,7 @@ in
 
   # Ensure host secrets directory exists for docker-compose env files
   systemd.tmpfiles.rules = [
-    "d /etc/secrets 0750 root root -"
+  "d /vol/secrets 0750 root root -"
     "d /var/lib/dyndns 0750 root root -"
     # Docker compose stack volume roots (ensure exist with sane perms)
     "d /vol 0755 root root -"
