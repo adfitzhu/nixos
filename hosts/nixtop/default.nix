@@ -45,6 +45,14 @@
     autoLogin = { enable = true; user = "adam"; };
   };
 
+  # Fingerprint reader configuration
+  services.fprintd.enable = true;
+  security.pam.services = {
+    login.fprintAuth = true;
+    sudo.fprintAuth = true;
+    sddm.fprintAuth = true;
+  };
+
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
     serviceConfig.Type = "oneshot";
