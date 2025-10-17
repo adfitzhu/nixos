@@ -129,7 +129,7 @@
   services.fail2ban.enable = true;
   services.tailscale.enable = true;
   services.tailscale.package = unstable.tailscale;
-
+  services.fwupd.enable = true;
     
   services.btrbk.instances = {
     "home" = {
