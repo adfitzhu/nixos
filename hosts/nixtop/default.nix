@@ -37,7 +37,7 @@
     enableExtensionPack = true;
   };
     # Prevent KVM from loading so VirtualBox can use VT-x/AMD-V.
-  boot.blacklistedKernelModules = [ "kvm" "kvm-intel" "vboxsf" ];
+  boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
 
 
 
@@ -48,37 +48,7 @@
     autoLogin = { enable = true; user = "adam"; };
   };
 
-  # Quiet boot and splash (Plymouth)
-  boot = {
-    plymouth = {
-      enable = true;
-      # BGRT shows the vendor logo with a spinner when firmware supports it
-      theme = "bgrt";
-    };
-    # Reduce verbosity in initrd and kernel console
-    initrd.verbose = false;
-    consoleLogLevel = 3;
-    kernelParams = [
-      "quiet"
-      # Lower udev/systemd chatter during boot
-      "udev.log_priority=3"
-      "systemd.show_status=false"
-      # Hide blinking cursor on VT during splash
-      "vt.global_cursor_default=0"
-    ];
-  };
-  # Keep firmware (vendor) logo resolution so BGRT looks nice
-  boot.loader.systemd-boot.consoleMode = "keep";
-
-  # Trim long systemd waits during activation/restart
-  systemd.extraConfig = ''
-    DefaultTimeoutStartSec=15s
-    DefaultTimeoutStopSec=15s
-  '';
-  systemd.user.extraConfig = ''
-    DefaultTimeoutStartSec=15s
-    DefaultTimeoutStopSec=15s
-  '';
+  
 
   # Fingerprint reader configuration
   services.fprintd.enable = true;
