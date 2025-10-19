@@ -12,8 +12,6 @@
 
   networking.hostName = "alphanix";
 
-  # system user is imported from users/adam/user.nix (nixos fragment)
-
   environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
 
   virtualisation.waydroid.enable = true;
@@ -30,7 +28,7 @@
   services.displayManager = {
     sddm.enable = true;
     sddm.wayland.enable = true;
-    autoLogin = { enable = true; user = "adam"; };
+    autoLogin = { enable = true; user = "guest"; };
   };
 
   systemd.services.my-auto-upgrade = {
