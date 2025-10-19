@@ -5,7 +5,6 @@ let
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
 
   dynDnsDomains = secrets.dyndnsDomains or "";
-
   dynDnsApiKey = secrets.dyndnsApiKey or "";
   domainNextcloud = secrets.nextcloud or "";
   domainTyac = secrets.theyoungartistsclub or "";
@@ -148,49 +147,24 @@ in
 
   # Dynamic DNS updater (checks external IP every 5m and updates when changed)
   systemd.services.dyndns-update = {
-    description = "Dynamic DNS update if external IP changed";
+    description = "Dynamic DNS update";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = ''
-        /bin/sh -eu -o pipefail -c '
-          CURL=${pkgs.curl}/bin/curl
-          LAST_FILE=/var/lib/dyndns/last_ip
-          CURRENT_IP=$($CURL -fsS https://ifconfig.co || $CURL -fsS https://api.ipify.org || echo "")
-          if [ -z "$CURRENT_IP" ]; then
-            echo "[dyndns] Unable to determine current IP" >&2; exit 0; fi
-          LAST_IP=""; [ -f "$LAST_FILE" ] && LAST_IP=$(cat "$LAST_FILE" || true)
-          if [ "$CURRENT_IP" = "$LAST_IP" ]; then
-            echo "[dyndns] IP unchanged ($CURRENT_IP)" >&2; exit 0; fi
-          if [ -z "${dynDnsApiKey}" ]; then
-            echo "[dyndns] Missing API_KEY" >&2; exit 1; fi
-          # Allow DOMAINS to be provided via EnvironmentFile or injected from secrets.nix.
-          if [ -z "${domainNextcloud}" ]; then
-            echo "[dyndns] No DOMAINS provided (nothing to update)" >&2; exit 1; fi
-          BASE_URL="https://api.dnsexit.com/dns/ud/?apikey=${dynDnsApiKey}"
-          # Expect DOMAINS as a pre-formatted comma-separated list (e.g. host1.example.com,host2.example.com)
-          # Keep it simple: no normalization beyond a basic empty check performed earlier.
-          RESP=$($CURL -fsS -X POST -d "host=${domainNextcloud}" "$BASE_URL" || true)
-          [ -n "$RESP" ] && echo "[dyndns] Update response: $RESP" >&2 || echo "[dyndns] Empty response" >&2
-          echo "$CURRENT_IP" > "$LAST_FILE.tmp" && mv "$LAST_FILE.tmp" "$LAST_FILE" && chmod 0640 "$LAST_FILE" || true
-        '
+        ${pkgs.curl}/bin/curl "https://api.dnsexit.com/dns/ud/?apikey=${dynDnsApiKey}" -d "host=${dynDnsDomains}"
       '';
     };
-    path = [ pkgs.curl pkgs.coreutils ];
-    # Inject DOMAINS and API_KEY from secrets.nix if provided there.
-    environment =
-      (lib.optionalAttrs (dynDnsDomains != "") { DOMAINS = dynDnsDomains; }) //
-      (lib.optionalAttrs (dynDnsApiKey != "") { API_KEY = dynDnsApiKey; });
+    path = [ pkgs.curl ];
   };
+
   systemd.timers.dyndns-update = {
-    description = "Periodic Dynamic DNS check";
+    description = "Run Dynamic DNS update every 5 minutes";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnBootSec = "30s";          # first check ~30s after boot
-      OnUnitActiveSec = "2m";      # run every 2 minutes thereafter
-      RandomizedDelaySec = "30s";  # add up to 30s jitter to avoid fixed schedule
-      Persistent = true;            # catch up if system was asleep/off
+      OnBootSec = "30s";
+      OnUnitActiveSec = "5m";
     };
   };
 
