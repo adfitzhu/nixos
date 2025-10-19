@@ -25,6 +25,12 @@ in
    #../../users/guest/user.nix
   ];
 
+  # Enable VirtualBox guest additions when this system runs as a VirtualBox VM
+  virtualisation.virtualbox.guest.enable = true;
+  services.xserver.videoDrivers = [ "virtualbox" ];
+
+
+
   networking.hostName = "webserver";
 
   environment.systemPackages = with pkgs; [ ];
