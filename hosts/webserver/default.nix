@@ -125,7 +125,7 @@ in
       "--cleanup"                   # remove old images after update
       "--rolling-restart"           # restart sequentially
     ];
-    restartPolicy = "unless-stopped";
+    extraOptions = [ "--restart=unless-stopped" ];
   };
 
     systemd.services.my-auto-upgrade = {
