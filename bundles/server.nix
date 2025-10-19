@@ -99,9 +99,6 @@
     "d /home/.snapshots 0755 root root"
   ];
 
-# Enable VirtualBox guest additions when this system runs as a VirtualBox VM
-virtualisation.virtualbox.guest.enable = true;
-services.xserver.videoDrivers = [ "virtualbox" ];
 
 nix.gc = {
   automatic = true;

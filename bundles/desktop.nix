@@ -174,19 +174,6 @@
   # Keep firmware (vendor) logo resolution so BGRT looks nice
   boot.loader.systemd-boot.consoleMode = "keep";
 
-  # Trim long systemd waits during activation/restart
-  systemd.extraConfig = ''
-    DefaultTimeoutStartSec=15s
-    DefaultTimeoutStopSec=15s
-  '';
-  systemd.user.extraConfig = ''
-    DefaultTimeoutStartSec=15s
-    DefaultTimeoutStopSec=15s
-  '';
-
-
-
-
 
 nix.gc = {
   automatic = true;
