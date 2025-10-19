@@ -163,15 +163,15 @@ in
           LAST_IP=""; [ -f "$LAST_FILE" ] && LAST_IP=$(cat "$LAST_FILE" || true)
           if [ "$CURRENT_IP" = "$LAST_IP" ]; then
             echo "[dyndns] IP unchanged ($CURRENT_IP)" >&2; exit 0; fi
-          if [ -z "${API_KEY}" ]; then
+          if [ -z "${dynDnsApiKey}" ]; then
             echo "[dyndns] Missing API_KEY" >&2; exit 1; fi
           # Allow DOMAINS to be provided via EnvironmentFile or injected from secrets.nix.
-          if [ -z "${DOMAINS}" ]; then
+          if [ -z "${domainNextcloud}" ]; then
             echo "[dyndns] No DOMAINS provided (nothing to update)" >&2; exit 1; fi
-          BASE_URL="https://api.dnsexit.com/dns/ud/?apikey=${API_KEY}"
+          BASE_URL="https://api.dnsexit.com/dns/ud/?apikey=${dynDnsApiKey}"
           # Expect DOMAINS as a pre-formatted comma-separated list (e.g. host1.example.com,host2.example.com)
           # Keep it simple: no normalization beyond a basic empty check performed earlier.
-          RESP=$($CURL -fsS -X POST -d "host=${DOMAINS}" "$BASE_URL" || true)
+          RESP=$($CURL -fsS -X POST -d "host=${domainNextcloud}" "$BASE_URL" || true)
           [ -n "$RESP" ] && echo "[dyndns] Update response: $RESP" >&2 || echo "[dyndns] Empty response" >&2
           echo "$CURRENT_IP" > "$LAST_FILE.tmp" && mv "$LAST_FILE.tmp" "$LAST_FILE" && chmod 0640 "$LAST_FILE" || true
         '
