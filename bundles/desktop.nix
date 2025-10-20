@@ -28,11 +28,6 @@
     unrar
     gzip
     bzip2
-    xz
-    tar
-    cabextract
-    arj
-    ncompress
 
     corefonts
     vista-fonts
