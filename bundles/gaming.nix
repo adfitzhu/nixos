@@ -82,7 +82,7 @@ in {
     ###########################################################################
     # GameMode (Feral Interactive) integration
     ###########################################################################
-    services.gamemode.enable = true;
+    #services.gamemode.enable = true;
 
     # Power profiles (on modern systems) - ensures power-profiles-daemon available
     services.power-profiles-daemon.enable = true;
