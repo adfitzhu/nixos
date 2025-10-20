@@ -28,7 +28,7 @@
     unrar
     gzip
     bzip2
-
+    xdg-utils
     corefonts
     vista-fonts
     btrfs-progs
