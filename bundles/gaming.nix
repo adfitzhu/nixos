@@ -42,6 +42,7 @@ in {
         pciutils lshw vulkan-tools glxinfo mesa-demos
         # Performance observation
         gpu-viewer
+        gamemode
       ]
       ++ lib.optional cfg.enableLutris lutris
   # vkBasalt intentionally omitted (can be re-added later)
