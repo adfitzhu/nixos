@@ -14,13 +14,24 @@
   environment.systemPackages = with pkgs; [
     kdePackages.discover
     kdePackages.kdesu
+    gparted
     libreoffice
     libnotify
     kdePackages.kdialog
     flatpak
     git
     vlc
+    
+    unzip
+    zip
     p7zip
+    unrar
+    gzipbzip2
+    xz
+    targetcabextract
+    arj
+    ncompress
+
     corefonts
     vista-fonts
     btrfs-progs
