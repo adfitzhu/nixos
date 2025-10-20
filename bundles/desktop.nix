@@ -26,9 +26,11 @@
     zip
     p7zip
     unrar
-    gzipbzip2
+    gzip
+    bzip2
     xz
-    targetcabextract
+    tar
+    cabextract
     arj
     ncompress
 
