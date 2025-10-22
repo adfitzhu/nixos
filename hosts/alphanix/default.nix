@@ -11,15 +11,12 @@
     ../../users/guest/user.nix
   ];
 
+  
   networking.hostName = "alphanix";
 
   environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
 
-  virtualisation.waydroid.enable = true;
-
   services.flatpak.packages = [
-    "com.usebottles.bottles"
-    "com.heroicgameslauncher.hgl"
     "com.discordapp.Discord"
     "com.obsproject.Studio"
     "com.github.tchx84.Flatseal"
@@ -29,7 +26,7 @@
   services.displayManager = {
     sddm.enable = true;
     sddm.wayland.enable = true;
-    autoLogin = { enable = true; user = "guest"; };
+    autoLogin = { enable = true; user = "adam"; };
   };
 
   systemd.services.my-auto-upgrade = {
