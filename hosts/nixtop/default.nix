@@ -27,6 +27,8 @@
     "com.discordapp.Discord"
     "com.obsproject.Studio"
     "com.github.tchx84.Flatseal"
+    "org.mozilla.Thunderbird"
+    "org.freecadweb.FreeCAD"
   ];
 
   # Steam configuration
