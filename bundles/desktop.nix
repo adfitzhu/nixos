@@ -15,6 +15,9 @@
     kdePackages.discover
     kdePackages.kdesu
     gparted
+    kdeApplications.partitionmanager
+    exfatprogs
+    ntfs-3g
     libreoffice
     libnotify
     kdePackages.kdialog
