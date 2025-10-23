@@ -29,7 +29,12 @@
     "com.github.tchx84.Flatseal"
   ];
 
-
+  # Steam configuration
+  programs.steam = {
+    enable = true;
+    remotePlay.openFirewall = true;
+    localNetworkGameTransfers.openFirewall = true;
+  };
 
   # VirtualBox configuration
   virtualisation.virtualbox.host = {
