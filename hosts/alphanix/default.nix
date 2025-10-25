@@ -29,6 +29,66 @@
     autoLogin = { enable = true; user = "adam"; };
   };
 
+
+  hardware.graphics = {
+      enable = true;
+      extraPackages = with pkgs; [
+        vpl-gpu-rt # for newer GPUs on NixOS >24.05 or unstable
+      ];
+    };
+
+  # Sunshine game streaming service
+  services.sunshine = {
+    enable = true;
+    capSysAdmin = true;
+    openFirewall = true;
+    settings = {
+      channels = 2;
+      # Encoding settings 
+      encoder = "quicksync";    # Use Intel QuickSync 
+      # encoder = "vaapi";      # Alternative: VA-API for Arc A770
+      
+      bitrate = 30000;          
+      fps = 60;                
+      hevc_mode = 2;           # Use HEVC/H.265 for better compression
+      av1_mode = 0;            # Disable AV1 for now (compatibility)
+      
+      # Low-latency optimizations
+      min_log_level = 2;       # Reduce logging overhead
+      adapter_name = "Intel";  # Force Intel adapter for QuickSync
+      
+      # Encoder tuning for low latency
+      qp = 28;                 # Lower QP for better quality/speed balance
+      crf = 0;                 # Disable CRF, use CBR for consistent latency
+      rc = "cbr";              # Constant bitrate for predictable latency
+      
+      # Frame pacing
+      fec_percentage = 5;      # Forward error correction
+      min_threads = 2;         # Minimum encoding threads
+    };
+    applications = {
+      env = {
+        PATH = "$(PATH):$(HOME)/.local/bin:/run/current-system/sw/bin";
+        DISPLAY = ":0";        # Ensure X11 display is available
+        WAYLAND_DISPLAY = "wayland-0";  # Ensure Wayland display is available
+      };
+      apps = [
+        {
+          name = "Desktop";
+          prep-cmd = [
+            {
+              do = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.HDMI-A-1.disable";
+              undo = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.HDMI-A-1.enable output.HDMI-A-1.position.1920,0";
+            }
+          ];
+          exclude-global-prep-cmd = "false";
+          auto-detach = "true";
+        }
+      ];
+    };
+  };
+
+
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
     serviceConfig.Type = "oneshot";

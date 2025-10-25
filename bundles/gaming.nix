@@ -10,12 +10,17 @@
     gamemode             # Feral GameMode
     gpu-viewer           # GPU monitoring
     lutris               # Gaming platform with installers
+    clonehero            # Clone Hero rhythm game
+    superTuxKart         # TuxKart racing game
   ];
+
+
 
   # Steam configuration
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true;
+    dedicatedServer.openFirewall = true;
     localNetworkGameTransfers.openFirewall = true;
   };
 
@@ -25,11 +30,6 @@
     enable32Bit = true;
   };
 
-  # Sunshine game streaming service
-  services.sunshine = {
-    enable = true;
-    openFirewall = true;
-  };
 
   # Waydroid for Android gaming
   virtualisation.waydroid.enable = true;

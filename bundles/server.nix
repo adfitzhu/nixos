@@ -76,7 +76,6 @@
   services.openssh.enable = true;
   services.fail2ban.enable = true;
   services.tailscale.enable = true;
-  #services.tailscale.package = unstable.tailscale;
     
   services.btrbk.instances = {
     "home" = {
@@ -127,7 +126,7 @@ nix.gc = {
   # Weekly prune of Docker builder cache older than 7 days
   systemd.services.docker-builder-prune-weekly = {
     description = "Prune Docker builder cache older than 7 days";
-    after = [ "docker.service" "network-online.target" ];
+    after = [ "docker.service" ];
     requires = [ "docker.service" ];
     serviceConfig = {
       Type = "oneshot";
