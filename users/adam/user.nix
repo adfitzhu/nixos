@@ -7,5 +7,16 @@
     extraGroups = [ "networkmanager" "wheel" "vboxsf" "vboxusers" "dialout" "audio" "video" "input" "docker" ];
   };
   users.groups.adam = {};
+
+
+  environment.systemPackages = with pkgs; [
+    vscode
+    kdePackages.yakuake         
+
+  ];
+
+
+
+
 }
 
