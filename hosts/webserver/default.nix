@@ -132,7 +132,6 @@ in
       "--cleanup"                   # remove old images after update
       "--rolling-restart"           # restart sequentially
     ];
-    extraOptions = [ "--restart=unless-stopped" ];
   };
 
     systemd.services.my-auto-upgrade = {
@@ -181,6 +180,7 @@ in
     description = "Docker Compose web stack (Nextcloud AIO + WordPress sites)";
     after = [ "docker.service" "network-online.target" ];
     requires = [ "docker.service" ];
+    wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     restartTriggers = [ composeFile ];
     path = [ pkgs.docker pkgs.coreutils pkgs.bash ];

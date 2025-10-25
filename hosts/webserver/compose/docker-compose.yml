@@ -12,10 +12,13 @@ services:
     # Bind only to loopback; Caddy will proxy from the public internet.
     ports:
       - "127.0.0.1:8080:8080"   # AIO admin interface and initial setup
+      - "127.0.0.1:11000:11000" # Nextcloud application port (proxied by Caddy)
       # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
     volumes:
       # Use a host bind mount so data lives under your chosen path
       - /vol/nextcloud/aio-config:/mnt/docker-aio-config
+      # Docker socket required for AIO to manage its internal container stack
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - AIO_DISABLE_BACKUP_SECTION=true
       # Set your domain so AIO configures trusted proxies correctly
