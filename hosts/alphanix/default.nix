@@ -12,7 +12,19 @@
   ];
 
   
-  networking.hostName = "alphanix";
+  # Network configuration
+  networking = {
+    hostName = "alphanix";
+    useDHCP = false;
+    interfaces.enp9s0 = {
+      ipv4.addresses = [{
+        address = "192.168.1.20";
+        prefixLength = 24;
+      }];
+    };
+    defaultGateway = "192.168.1.1";
+    nameservers = [ "192.168.1.60" "192.168.1.1" ];
+  };
 
   # Additional filesystem mounts
   fileSystems."/archive" = {
@@ -134,6 +146,34 @@
     allowedTCPPorts = [ 2049 111 20048 ];
     allowedUDPPorts = [ 2049 111 20048 ];
   };
+
+  # Samba Server configuration for Windows compatibility
+  services.samba = {
+    enable = true;
+    openFirewall = true;
+    settings = {
+      global = {
+        "workgroup" = "WORKGROUP";
+        "server string" = "alphanix";
+        "netbios name" = "alphanix";
+        "security" = "user";
+        "map to guest" = "bad user";
+        "guest account" = "nobody";
+        "dns proxy" = "no";
+      };
+      "cloud" = {
+        "path" = "/cloud";
+        "browseable" = "yes";
+        "read only" = "no";
+        "guest ok" = "yes";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "force user" = "adam";
+        "force group" = "users";
+      };
+    };
+  };
+
 
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
