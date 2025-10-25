@@ -32,6 +32,13 @@ in
 
   networking.hostName = "webserver";
 
+  # Mount NFS share from alphanix
+  fileSystems."/cloud" = {
+    device = "alphanix:/cloud";
+    fsType = "nfs4";
+    options = [ "defaults" "_netdev" "nofail" ];
+  };
+
   environment.systemPackages = with pkgs; [ ];
 
   services.flatpak.packages = [

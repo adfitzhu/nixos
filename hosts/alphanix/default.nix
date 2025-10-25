@@ -121,6 +121,20 @@
     "d /games 0755 adam users - -"
   ];
 
+  # NFS Server configuration
+  services.nfs.server = {
+    enable = true;
+    exports = ''
+      /cloud *(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+    '';
+  };
+
+  # Open NFS ports in firewall
+  networking.firewall = {
+    allowedTCPPorts = [ 2049 111 20048 ];
+    allowedUDPPorts = [ 2049 111 20048 ];
+  };
+
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
     serviceConfig.Type = "oneshot";
