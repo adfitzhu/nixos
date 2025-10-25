@@ -14,6 +14,31 @@
   
   networking.hostName = "alphanix";
 
+  # Additional filesystem mounts
+  fileSystems."/archive" = {
+    device = "/dev/disk/by-label/Storage";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" ];
+  };
+
+  fileSystems."/cloud" = {
+    device = "/dev/disk/by-label/Storage";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "subvol=cloud" ];
+  };
+
+  fileSystems."/localdata" = {
+    device = "/dev/disk/by-label/SU800";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "subvol=localdata" ];
+  };
+
+  fileSystems."/games" = {
+    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "subvol=games" ];
+  };
+
   environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
 
   services.flatpak.packages = [
@@ -88,6 +113,13 @@
     };
   };
 
+  # Set up mount point permissions to be user-writable
+  systemd.tmpfiles.rules = [
+    "d /archive 0755 adam users - -"
+    "d /cloud 0755 adam users - -" 
+    "d /localdata 0755 adam users - -"
+    "d /games 0755 adam users - -"
+  ];
 
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
