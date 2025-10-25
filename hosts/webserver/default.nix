@@ -34,9 +34,9 @@ in
 
   # Mount NFS share from alphanix
   fileSystems."/cloud" = {
-    device = "alphanix:/cloud";
+    device = "alphanix:/";
     fsType = "nfs4";
-    options = [ "defaults" "_netdev" "nofail" ];
+    options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
   };
 
   environment.systemPackages = with pkgs; [ ];
