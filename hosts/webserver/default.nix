@@ -140,6 +140,11 @@ in
     enable = true;
     capSysAdmin = true;
     openFirewall = true;
+    settings = {
+      channels = 2;
+      # Encoding settings 
+      encoder = "quicksync";    # Use Intel QuickSync   
+    };
   };
 
   # Watchtower container: auto-updates only labeled containers (skips Nextcloud AIO by omitting label)
