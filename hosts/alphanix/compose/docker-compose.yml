@@ -1,0 +1,23 @@
+
+
+services:
+    plex:
+    container_name: plex
+    image: plexinc/pms-docker
+    restart: always
+    environment:
+      - TZ=America/Los_Angeles
+      - PLEX_CLAIM=<claimToken>
+    network_mode: host
+    volumes:
+      - /vol/plex/config:/config
+      - /vol/plex/transcode:/transcode
+      - /archive:/data
+    devices:
+      - /dev/dri:/dev/dri
+
+networks:
+  backend:
+    driver: bridge
+
+

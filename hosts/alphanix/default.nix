@@ -1,5 +1,9 @@
 { config, pkgs, lib, unstable, ... }:
 
+let
+  # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
+  composeFile = ./compose/docker-compose.yml;
+in
 {
   # Host-specific settings for alphanix
 
@@ -131,7 +135,54 @@
     "d /cloud 0755 adam users - -" 
     "d /localdata 0755 adam users - -"
     "d /games 0755 adam users - -"
+    # Docker volume directories
+    "d /vol 0755 root root - -"
+    "d /vol/plex 0755 root root - -"
+    "d /vol/plex/config 0755 root root - -"
+    "d /vol/plex/transcode 0755 root root - -"
   ];
+
+  # Docker configuration
+  virtualisation.docker = {
+    enable = true;
+    storageDriver = "overlay2";
+    autoPrune = {
+      enable = true;
+      dates = "daily";
+      flags = [ "--all" "--volumes" ];
+    };
+    daemon.settings = {
+      "log-driver" = "json-file";
+      "log-opts" = {
+        "max-size" = "10m";
+        "max-file" = "3";
+      };
+    };
+  };
+
+  # Docker Compose service for all containers
+  systemd.services.docker-compose-stack = {
+    description = "Docker Compose application stack";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    restartTriggers = [ composeFile ];
+    path = [ pkgs.docker pkgs.coreutils pkgs.bash ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      set -euo pipefail
+      echo "[compose-stack] Bringing application stack up" >&2
+      docker compose -f ${composeFile} up -d --remove-orphans
+    '';
+    preStop = ''
+      set -euo pipefail
+      echo "[compose-stack] Stopping application stack" >&2
+      docker compose -f ${composeFile} down
+    '';
+  };
 
   # NFS Server configuration
   services.nfs.server = {
