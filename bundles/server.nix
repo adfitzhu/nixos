@@ -141,4 +141,9 @@ nix.gc = {
       Persistent = true;
     };
   };
+
+  # Useful shell aliases for server management
+  programs.bash.shellAliases = {
+    "docker-status" = "docker ps --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}'";
+  };
 }

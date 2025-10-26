@@ -1,5 +1,7 @@
 version: "3.9"
 
+# Set explicit project name to control volume naming
+name: nextcloud
 
 # Caddy (running as a NixOS service) proxies public traffic to these.
 
@@ -15,14 +17,16 @@ services:
       - "127.0.0.1:11000:11000" # Nextcloud application port (proxied by Caddy)
       # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
     volumes:
-      # Use a host bind mount so data lives under your chosen path
-      - /vol/nextcloud/aio-config:/mnt/docker-aio-config
+      # Use the named volume that's backed by /vol/nextcloud/aio-config
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
       # Docker socket required for AIO to manage its internal container stack
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - AIO_DISABLE_BACKUP_SECTION=true
       # Set your domain so AIO configures trusted proxies correctly
       - APACHE_IP_BINDING=127.0.0.1
+      # Tell AIO to use our custom data directory structure
+      - NEXTCLOUD_DATADIR=/vol/nextcloud/data
       # If running behind Caddy with HTTPS, AIO can auto-detect forwarded headers.
     networks:
       - backend
@@ -104,3 +108,11 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /vol/nextcloud/aio-config

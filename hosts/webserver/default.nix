@@ -30,7 +30,24 @@ in
 
 
 
-  networking.hostName = "webserver";
+  # Networking configuration
+  networking = {
+    hostName = "webserver";
+    
+    # Static IP configuration
+    useDHCP = false;
+    interfaces.enp2s0 = {
+      ipv4.addresses = [{
+        address = "192.168.1.10";
+        prefixLength = 24;
+      }];
+    };
+    defaultGateway = "192.168.1.1";
+    nameservers = [ "192.168.1.10" "192.168.1.1" ];
+    
+    # Firewall configuration
+    firewall.allowedTCPPorts = [ 80 443 3000 ];
+  };
 
   # Mount NFS share from alphanix
   fileSystems."/cloud" = {
@@ -87,9 +104,6 @@ in
       '');
   };
 
-  # Open HTTP/HTTPS for Caddy
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
-
   # Ensure host secrets directory exists for docker-compose env files
   systemd.tmpfiles.rules = [
   "d /vol/secrets 0750 root root -"
@@ -98,6 +112,7 @@ in
     "d /vol 0755 root root -"
     "d /vol/nextcloud 0750 root root -"
     "d /vol/nextcloud/aio-config 0750 root root -"
+    "d /vol/nextcloud/data 0750 root root -"
     "d /vol/artists 0750 root root -"
     "d /vol/artists/theyoungartistsclub-db 0750 root root -"
     "d /vol/artists/theyoungartistsclub 0750 root root -"
@@ -118,6 +133,13 @@ in
     sddm.enable = true;
     sddm.wayland.enable = true;
     autoLogin = { enable = true; user = "adam"; };
+  };
+
+  # Sunshine game streaming service
+  services.sunshine = {
+    enable = true;
+    capSysAdmin = true;
+    openFirewall = true;
   };
 
   # Watchtower container: auto-updates only labeled containers (skips Nextcloud AIO by omitting label)
