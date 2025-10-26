@@ -164,6 +164,7 @@ in
   systemd.services.docker-compose-stack = {
     description = "Docker Compose application stack";
     after = [ "docker.service" "network-online.target" ];
+    wants = [ "network-online.target" ];
     requires = [ "docker.service" ];
     wantedBy = [ "multi-user.target" ];
     restartTriggers = [ composeFile ];

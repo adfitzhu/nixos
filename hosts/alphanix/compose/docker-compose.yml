@@ -1,7 +1,7 @@
 
 
 services:
-    plex:
+  plex:
     container_name: plex
     image: plexinc/pms-docker
     restart: always
