@@ -16,9 +16,13 @@
   
   networking.hostName = "nixtop";
 
+  # Use the Zen kernel
+  boot.kernelPackages = pkgs.linuxPackages_zen;
+
+
   # Mount NFS share from alphanix
   fileSystems."/cloud" = {
-    device = "alphanix:/";
+    device = "192.168.1.20:/";
     fsType = "nfs4";
     options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
   };
