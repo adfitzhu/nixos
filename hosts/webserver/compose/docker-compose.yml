@@ -35,7 +35,7 @@ services:
     image: mariadb
     container_name: theyoungartistsclub-db
     restart: always
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-flush-log-at-trx-commit=2 --sync-binlog=0
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:
@@ -51,7 +51,7 @@ services:
     image: mariadb
     container_name: allergy-db
     restart: always
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-flush-log-at-trx-commit=2 --sync-binlog=0
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     volumes:

@@ -112,7 +112,7 @@ nix.gc = {
     autoPrune = {
       enable = true;
       dates = "daily";
-      flags = [ "--all" "--volumes" ];
+      flags = [ "--all" ]; # Removed --volumes to protect database volumes
     };
     daemon.settings = {
       "log-driver" = "json-file";

@@ -113,12 +113,12 @@ in
     "d /vol/nextcloud 0750 root root -"
     "d /vol/nextcloud/aio-config 0750 root root -"
     "d /vol/nextcloud/data 0750 root root -"
-    "d /vol/artists 0750 root root -"
-    "d /vol/artists/theyoungartistsclub-db 0750 root root -"
-    "d /vol/artists/theyoungartistsclub 0750 root root -"
-    "d /vol/allergy 0750 root root -"
-    "d /vol/allergy/allergy-db 0750 root root -"
-    "d /vol/allergy/allergy 0750 root root -"
+    "d /vol/artists 0755 root root -"
+    "d /vol/artists/theyoungartistsclub-db 0755 999 999 -"
+    "d /vol/artists/theyoungartistsclub 0755 root root -"
+    "d /vol/allergy 0755 root root -"
+    "d /vol/allergy/allergy-db 0755 999 999 -"
+    "d /vol/allergy/allergy 0755 root root -"
     # uploads.ini host file placeholder (Compose maps /vol/uploads.ini)
     "f /vol/uploads.ini 0644 root root -"
   ];
@@ -209,6 +209,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true; # So systemd thinks it's active after the up -d completes
+      TimeoutStopSec = "60s"; # Give databases time to shut down gracefully
     };
     script = ''
       set -euo pipefail
@@ -217,8 +218,11 @@ in
     '';
     preStop = ''
       set -euo pipefail
-      echo "[compose-webstack] Stopping stack" >&2
-      docker compose -f ${composeFile} down
+      echo "[compose-webstack] Gracefully stopping databases first" >&2
+      # Stop databases gracefully with longer timeout
+      docker stop --time=30 allergy-db theyoungartistsclub-db || true
+      echo "[compose-webstack] Stopping remaining stack" >&2
+      docker compose -f ${composeFile} down --timeout 30
     '';
   };
 
