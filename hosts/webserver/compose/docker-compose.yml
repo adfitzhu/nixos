@@ -13,8 +13,8 @@ services:
     restart: unless-stopped
     # Bind only to loopback; Caddy will proxy from the public internet.
     ports:
-      - "127.0.0.1:8080:8080"   # AIO admin interface and initial setup
-      - "127.0.0.1:11000:11000" # Nextcloud application port (proxied by Caddy)
+      - "8080:8080"   # AIO admin interface and initial setup (accessible externally)
+      # Note: APACHE_PORT=11000 is internal only, Caddy will proxy to the Nextcloud container directly
       # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
     volumes:
       # Use the named volume that's backed by /vol/nextcloud/aio-config
@@ -27,7 +27,10 @@ services:
       - APACHE_IP_BINDING=127.0.0.1
       # Tell AIO to use our custom data directory structure
       - NEXTCLOUD_DATADIR=/vol/nextcloud/data
-      # If running behind Caddy with HTTPS, AIO can auto-detect forwarded headers.
+      # Skip domain validation since we're behind Caddy reverse proxy
+      - SKIP_DOMAIN_VALIDATION=true
+      # Configure Apache port to avoid conflict with Caddy on 443
+      - APACHE_PORT=11000
     networks:
       - backend
 
