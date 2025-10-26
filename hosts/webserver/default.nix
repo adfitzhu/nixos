@@ -43,7 +43,7 @@ in
       }];
     };
     defaultGateway = "192.168.1.1";
-    nameservers = [ "192.168.1.10" "192.168.1.1" ];
+    nameservers = [ "127.0.0.1" "192.168.1.1" ];
     
     # Firewall configuration
     firewall.allowedTCPPorts = [ 80 443 3000 ];
@@ -51,7 +51,7 @@ in
 
   # Mount NFS share from alphanix
   fileSystems."/cloud" = {
-    device = "alphanix:/";
+    device = "192.168.1.20:/";
     fsType = "nfs4";
     options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
   };
