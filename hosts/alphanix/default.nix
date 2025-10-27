@@ -193,10 +193,25 @@ in
     '';
   };
 
-  # Open NFS ports in firewall
+  # Open firewall ports for NFS and Plex
   networking.firewall = {
-    allowedTCPPorts = [ 2049 111 20048 ];
-    allowedUDPPorts = [ 2049 111 20048 ];
+    allowedTCPPorts = [ 
+      # NFS ports
+      2049 111 20048
+      # Plex Media Server ports  
+      32400          # Main Plex port
+      3005           # Plex Companion
+      8324           # Plex for Roku via Plex Companion
+      32469          # Plex DLNA Server
+    ];
+    allowedUDPPorts = [ 
+      # NFS ports
+      2049 111 20048
+      # Plex ports
+      1900           # Plex DLNA Server
+      5353           # Bonjour/Avahi
+      32410 32412 32413 32414  # GDM network discovery
+    ];
   };
 
   # Samba Server configuration for Windows compatibility
