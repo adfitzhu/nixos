@@ -16,8 +16,12 @@
   
   networking.hostName = "nixtop";
 
-  # Use the Zen kernel
-  boot.kernelPackages = pkgs.linuxPackages_zen;
+  # Kernel choice:
+  boot.kernelPackages = unstable.linuxPackages_latest;
+  
+  # Alternative options:
+  # boot.kernelPackages = unstable.linuxPackages_zen;
+  # boot.kernelPackages = unstable.linuxPackages_lqx; 
 
 
   # Mount NFS share from alphanix
