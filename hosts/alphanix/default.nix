@@ -55,7 +55,11 @@ in
     options = [ "defaults" "compress=zstd" "subvol=games" ];
   };
 
-  environment.systemPackages = with pkgs; [ pkgs.orca-slicer pkgs.clonehero ];
+  environment.systemPackages = with pkgs; [ 
+    pkgs.orca-slicer 
+    pkgs.clonehero 
+    pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top
+  ];
 
   services.flatpak.packages = [
     "com.discordapp.Discord"
@@ -140,6 +144,10 @@ in
     "d /vol/plex 0755 root root - -"
     "d /vol/plex/config 0755 root root - -"
     "d /vol/plex/transcode 0755 root root - -"
+    # Immich directories
+    "d /vol/immich 0755 root root - -"
+    "d /vol/immich/data 0755 root root - -"
+    "d /vol/immich/db 0755 root root - -"
   ];
 
   # Docker configuration
@@ -172,15 +180,19 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      EnvironmentFile = "/vol/immich/immich.env";
     };
     script = ''
       set -euo pipefail
       echo "[compose-stack] Bringing application stack up" >&2
+      # Change to the compose directory so relative paths work
+      cd $(dirname ${composeFile})
       docker compose -f ${composeFile} up -d --remove-orphans
     '';
     preStop = ''
       set -euo pipefail
       echo "[compose-stack] Stopping application stack" >&2
+      cd $(dirname ${composeFile})
       docker compose -f ${composeFile} down
     '';
   };
