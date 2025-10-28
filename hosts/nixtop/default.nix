@@ -68,12 +68,6 @@
   boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
 
 
-
-  environment.systemPackages = with pkgs; [ 
-    pkgs.orca-slicer
-    pkgs.clonehero
-  ];
-
   # Fingerprint reader configuration
   services.fprintd.enable = true;
   security.pam.services = {
