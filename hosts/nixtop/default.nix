@@ -3,7 +3,7 @@
 {
   imports = [
     ../../bundles/desktop.nix
-    ../../bundles/plasma.nix
+   # ../../bundles/plasma.nix
     ../../users/adam/user.nix
   #  ../../users/guest/user.nix
   ];
@@ -20,7 +20,14 @@
     user = "adam"; 
   };
 
-
+  # KDE Plasma 6 with display stability fixes
+  services.desktopManager.plasma6.enable = true;
+  
+  # Display manager configuration
+  services.displayManager = {
+    sddm.enable = true;
+    sddm.wayland.enable = true;
+  };
 
   # Kernel choice:
   # boot.kernelPackages = unstable.linuxPackages_zen;       # Newest zen
