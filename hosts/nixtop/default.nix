@@ -3,25 +3,30 @@
 {
   imports = [
     ../../bundles/desktop.nix
+    ../../bundles/plasma.nix
     ../../users/adam/user.nix
   #  ../../users/guest/user.nix
   ];
 
 
-  #boot.blacklistedKernelModules = lib.mkForce [ "vboxsf" ];
+  networking.hostName = "nixtop";
 
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
   };
   
-  networking.hostName = "nixtop";
+  services.displayManager.autoLogin = { 
+    enable = true; 
+    user = "adam"; 
+  };
+
+
 
   # Kernel choice:
-  boot.kernelPackages = unstable.linuxPackages_latest;
-  
-  # Alternative options:
-  # boot.kernelPackages = unstable.linuxPackages_zen;
-  # boot.kernelPackages = unstable.linuxPackages_lqx; 
+  # boot.kernelPackages = unstable.linuxPackages_zen;       # Newest zen
+  # boot.kernelPackages = unstable.linuxPackages_lqx;     # Gaming optimized
+  boot.kernelPackages = pkgs.linuxPackages_zen;         # Stable zen
+  # boot.kernelPackages = unstable.linuxPackages_latest;  # Bleeding edge (may have issues) 
 
 
   # Mount NFS share from alphanix
@@ -64,14 +69,10 @@
 
 
 
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager = {
-    sddm.enable = true;
-    sddm.wayland.enable = true;
-    autoLogin = { enable = true; user = "adam"; };
-  };
-
-  
+  environment.systemPackages = with pkgs; [ 
+    pkgs.orca-slicer
+    pkgs.clonehero
+  ];
 
   # Fingerprint reader configuration
   services.fprintd.enable = true;
