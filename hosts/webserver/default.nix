@@ -112,7 +112,7 @@ in
     "d /vol 0755 root root -"
     "d /vol/nextcloud 0750 root root -"
     "d /vol/nextcloud/aio-config 0750 root root -"
-    "d /vol/nextcloud/data 0750 root root -"
+    "d /vol/nextcloud/data 0755 33 33 -"
     "d /vol/artists 0755 root root -"
     "d /vol/artists/theyoungartistsclub-db 0755 999 999 -"
     "d /vol/artists/theyoungartistsclub 0755 root root -"
