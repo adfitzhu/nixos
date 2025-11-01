@@ -78,7 +78,7 @@
   # Fingerprint reader configuration
   services.fprintd.enable = true;
   security.pam.services = {
-    #sudo.fprintAuth = true;
+    sudo.fprintAuth = false;
     sddm.fprintAuth = true;
   };
 
