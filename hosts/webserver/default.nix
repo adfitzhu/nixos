@@ -9,6 +9,11 @@ let
   domainNextcloud = secrets.nextcloud or "";
   domainTyac = secrets.theyoungartistsclub or "";
   domainAllergy = secrets.allergy or "";
+  domainImmich = secrets.immich or "";
+  domainMC1 = secrets.mc1 or "";
+  domainMC2 = secrets.mc2 or "";
+  domainMC3 = secrets.mc3 or "";
+  domainMC4 = secrets.mc4 or "";
 
   # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
   composeFile = ./compose/docker-compose.yml;
@@ -97,6 +102,46 @@ in
       (mkVHost domainAllergy ''
         encode zstd gzip
         reverse_proxy 127.0.0.1:8003 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainImmich ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:2283 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainMC1 ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:25565 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainMC2 ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:25566 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainMC3 ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:25567 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainMC4 ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:25568 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
