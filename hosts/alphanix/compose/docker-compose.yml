@@ -27,6 +27,8 @@ services:
       # Do not edit the next line. If you want to change the media storage location on your system, edit the value of UPLOAD_LOCATION in the .env file
       - ${UPLOAD_LOCATION}:/data
       - /etc/localtime:/etc/localtime:ro
+      # External storage for existing photos and videos (read-write for duplicate deletion)
+      - /cloud/Photos&Videos:/external-storage
     env_file:
       - /vol/immich/immich.env
     ports:
@@ -51,6 +53,8 @@ services:
     volumes:
       - model-cache:/cache
       - /dev/bus/usb:/dev/bus/usb
+      # External storage for existing photos and videos (needed for ML processing)
+      - /cloud/Photos&Videos:/external-storage:ro
     env_file:
       - /vol/immich/immich.env
     restart: always
