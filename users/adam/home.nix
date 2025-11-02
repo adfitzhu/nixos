@@ -22,30 +22,22 @@ in
         urSeen = 9999;
         crashReportingEnabled = false;
       };
-      devices = {
-        server = {
-          id = syncthingId;
-          introducer = true; # Allow this device to introduce new devices
-        };
-      };
       folders = {
         "adam_documents" = {
           path = "/home/adam/Documents";
-          devices = [ "server" ];
-          label = "Adam's Documents"; # This is the friendly name shown in the UI
-
+          label = "Adam's Documents";
         };
         "adam_music" = {
           path = "/home/adam/Music";
-          devices = [ "server" ];
-          label = "Adam's Music"; # This is the friendly name shown in the UI
-
+          label = "Adam's Music";
         };
-        "pictures" = {
-          path = "/home/adam/Pictures";
-          devices = [ "server" ];
-          label = "Pictures"; # This is the friendly name shown in the UI
-
+        "upload" = {
+          path = "/home/adam/InstantUpload";
+          label = "Instant Upload";
+        };
+        "localsync" = {
+          path = "/home/adam/Sync";
+          label = "Local Sync";
         };
       };
     };

@@ -197,6 +197,116 @@ in
     '';
   };
 
+  # Syncthing system service
+  services.syncthing = {
+    enable = true;
+    user = "adam";  # Run as adam user
+    dataDir = "/home/adam/.local/share/syncthing";   # User-accessible location for Syncthing database
+    configDir = "/home/adam/.config/syncthing";      # User-accessible location for Syncthing config
+    openDefaultPorts = true;  # Opens ports 8384 (web UI), 22000 (sync), 21027 (discovery)
+    
+    # Let web UI configuration persist across rebuilds
+    overrideDevices = false;    # Don't override devices added via web UI
+    overrideFolders = false;    # Don't override folders added via web UI
+    
+    # Basic settings - you can configure more via web UI
+    settings = {
+      gui = {
+        address = "0.0.0.0:8384";  # Allow access from any IP (useful for remote management)
+        insecureAdminAccess = false;  # Require authentication
+      };
+      
+      options = {
+        extraFlags = [ "--no-default-folder" ];
+        urAccepted = -1;
+        urSeen = 9999;
+        crashReportingEnabled = false;
+      };
+      
+      folders = {
+        "adam_documents" = {
+          id = "adam_documents";
+          label = "Adam's Documents";
+          path = "/cloud/Documents/Adam's Documents";
+        };
+        
+        "adam_music" = {
+          id = "adam_music";
+          label = "Adam's Music";
+          path = "/cloud/Entertainment/Music/Adam's Music";
+        };
+        
+        "beth_documents" = {
+          id = "beth_documents";
+          label = "Beth's Documents";
+          path = "/cloud/Documents/Beth's Documents";
+        };
+        
+        "beth_music" = {
+          id = "beth_music";
+          label = "Beth's Music";
+          path = "/cloud/Entertainment/Music/Beth's Music";
+        };
+        
+        "pictures" = {
+          id = "pictures";
+          label = "Pictures";
+          path = "/cloud/Photos&Videos/Pictures";
+        };
+        
+        "upload" = {
+          id = "upload";
+          label = "Instant Upload";
+          path = "/cloud/Photos&Videos/Immich/library/admin";
+          type = "sendonly";  # Send-only from server (one-way sync)
+          ignorePerms = true;  # Ignore permission changes
+        };
+        
+        "eli_documents" = {
+          id = "eli_documents";
+          label = "Eli's Documents";
+          path = "/cloud/Documents/Eli's Documents";
+        };
+        
+        "eli_music" = {
+          id = "eli_music";
+          label = "Eli's Music";
+          path = "/cloud/Entertainment/Music/Eli's Music";
+        };
+        
+        "eli_pictures" = {
+          id = "eli_pictures";
+          label = "Eli's Pictures";
+          path = "/tmp/syncthing-placeholder/eli_pictures";
+        };
+        
+        "steven_documents" = {
+          id = "steven_documents";
+          label = "Steven's Documents";
+          path = "/cloud/Documents/Steven's Documents";
+        };
+        
+        "steven_music" = {
+          id = "steven_music";
+          label = "Steven's Music";
+          path = "/cloud/Entertainment/Music/Steven's Music";
+        };
+        
+        "steven_pictures" = {
+          id = "steven_pictures";
+          label = "Steven's Pictures";
+          path = "/tmp/syncthing-placeholder/steven_pictures";
+        };
+        
+        "localsync" = {
+          id = "localsync";
+          label = "Local Sync";
+          path = "/cloud/LocalSync";
+        };
+      };
+    };
+  };
+
   # NFS Server configuration
   services.nfs.server = {
     enable = true;
@@ -208,18 +318,17 @@ in
   # Open firewall ports for NFS and Plex
   networking.firewall = {
     allowedTCPPorts = [ 
-      # NFS ports
-      2049 111 20048
-      # Plex Media Server ports  
+      
+      2049 111 20048 # NFS ports
       32400          # Main Plex port
       3005           # Plex Companion
       8324           # Plex for Roku via Plex Companion
       32469          # Plex DLNA Server
+      2283           # Immich web interface
     ];
     allowedUDPPorts = [ 
-      # NFS ports
-      2049 111 20048
-      # Plex ports
+      
+      2049 111 20048 # NFS ports
       1900           # Plex DLNA Server
       5353           # Bonjour/Avahi
       32410 32412 32413 32414  # GDM network discovery
