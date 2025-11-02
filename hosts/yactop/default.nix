@@ -9,7 +9,12 @@
 
   networking.hostName = "yactop";
 
-  # system user imported from users/beth/user.nix
+  # Mount NFS share from alphanix
+  fileSystems."/cloud" = {
+    device = "192.168.1.20:/";
+    fsType = "nfs4";
+    options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
+  };
 
   environment.systemPackages = with pkgs; [ pkgs.obs-studio pkgs.droidcam pkgs.kdePackages.skanpage pkgs.audacity pkgs.clementine pkgs.superTuxKart ];
 
