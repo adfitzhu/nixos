@@ -184,15 +184,58 @@ manual_backup() {
     case "$TARGET" in
         cloud)
             echo "Running manual cloud backup..."
-            systemctl start btrbk-cloud-local || echo "Service may not exist"
+            if systemctl start btrbk-cloud-local; then
+                echo "Waiting for backup to complete..."
+                while systemctl is-active btrbk-cloud-local --quiet; do
+                    echo -n "."
+                    sleep 1
+                done
+                echo ""
+                if systemctl is-failed btrbk-cloud-local --quiet; then
+                    echo "❌ Cloud backup failed!"
+                else
+                    echo "✅ Cloud backup completed successfully!"
+                fi
+            else
+                echo "❌ Failed to start cloud backup service"
+            fi
             ;;
         vol)
             echo "Running manual vol backup..."
-            systemctl start btrbk-vol-local || echo "Service may not exist"
+            if systemctl start btrbk-vol-local; then
+                echo "Waiting for backup to complete..."
+                while systemctl is-active btrbk-vol-local --quiet; do
+                    echo -n "."
+                    sleep 1
+                done
+                echo ""
+                if systemctl is-failed btrbk-vol-local --quiet; then
+                    echo "❌ Vol backup failed!"
+                else
+                    echo "✅ Vol backup completed successfully!"
+                fi
+            else
+                echo "❌ Failed to start vol backup service"
+            fi
             ;;
         network)
             echo "Running network backup..."
-            systemctl start btrbk-data-to-webserver || echo "Service may not exist"
+            if systemctl start btrbk-data-to-webserver; then
+                echo "Waiting for backup to complete..."
+                while systemctl is-active btrbk-data-to-webserver --quiet; do
+                    echo -n "."
+                    sleep 2
+                done
+                echo ""
+                if systemctl is-failed btrbk-data-to-webserver --quiet; then
+                    echo "❌ Network backup failed!"
+                    echo "Check logs: journalctl -u btrbk-data-to-webserver --no-pager"
+                else
+                    echo "✅ Network backup completed successfully!"
+                fi
+            else
+                echo "❌ Failed to start network backup service"
+            fi
             ;;
         *)
             echo "Unknown target: $TARGET"

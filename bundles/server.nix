@@ -74,7 +74,16 @@
   security.rtkit.enable = true;
 
   services.openssh.enable = true;
-  services.fail2ban.enable = true;
+  
+  # Configure fail2ban with local network whitelist
+  services.fail2ban = {
+    enable = true;
+    ignoreIP = [
+      "127.0.0.0/8"      # Localhost
+      "192.168.1.0/24"   # Local network - prevents btrbk backups from being banned
+    ];
+  };
+  
   services.tailscale.enable = true;
     
   services.btrbk.instances = {
