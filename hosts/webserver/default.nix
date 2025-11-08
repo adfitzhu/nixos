@@ -163,7 +163,7 @@ in
   # Ensure host secrets directory exists for docker-compose env files
   # Create /vol as a proper btrfs subvolume on root filesystem
   fileSystems."/vol" = {
-    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    device = config.fileSystems."/".device;
     fsType = "btrfs";
     options = [ "defaults" "compress=zstd" "subvol=vol" ];
   };
@@ -229,24 +229,16 @@ in
     # Backup-related directories
     "d /mnt/backup-hdd 0755 root root -"
     "d /vol/.btrbk_snapshots 0755 root root -"
-  ];
-
-  # Create btrbk user for SSH access from alphanix
-  users.users.btrbk = {
-    isSystemUser = true;
-    group = "btrbk";
-    home = "/var/lib/btrbk";
-    createHome = true;
-    shell = pkgs.bash;
-    openssh.authorizedKeys.keyFiles = [ "/var/lib/btrbk/.ssh/authorized_keys" ];
-  };
-  users.groups.btrbk = {};
-
-  # Ensure btrbk user has access to backup destinations
-  systemd.tmpfiles.rules = systemd.tmpfiles.rules ++ [
+    # btrbk SSH configuration
     "d /var/lib/btrbk/.ssh 0700 btrbk btrbk -"
     "f /var/lib/btrbk/.ssh/authorized_keys 0600 btrbk btrbk -"
   ];
+
+  # SSH access for btrbk user (user automatically created by services.btrbk)
+  # Add your SSH public key here later: users.users.btrbk.openssh.authorizedKeys.keys = [ "ssh-rsa AAAA..." ];
+  users.users.btrbk.openssh.authorizedKeys.keys = [ ];
+
+
 
   services.adguardhome = {
     enable = true;
