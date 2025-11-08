@@ -240,6 +240,19 @@ in
   # Add your SSH public key here later: users.users.btrbk.openssh.authorizedKeys.keys = [ "ssh-rsa AAAA..." ];
   users.users.btrbk.openssh.authorizedKeys.keys = [ ];
 
+  # Allow btrbk user to run btrfs commands via sudo (needed for remote operations)
+  security.sudo.extraRules = [
+    {
+      users = [ "btrbk" ];
+      commands = [
+        {
+          command = "${pkgs.btrfs-progs}/bin/btrfs";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+
 
 
   services.adguardhome = {
