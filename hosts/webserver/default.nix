@@ -61,7 +61,18 @@ in
     options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
   };
 
-  environment.systemPackages = with pkgs; [ ];
+  # Mount USB HDD for backups with graceful failure handling
+  fileSystems."/mnt/backup-hdd" = {
+    device = "/dev/disk/by-label/Elements";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "nofail" "x-systemd.device-timeout=10" ];
+    noCheck = true;  # Don't fsck on boot since it might not be connected
+  };
+
+  environment.systemPackages = with pkgs; [ 
+    # Backup management script (temporarily disabled due to path issues)
+    # (pkgs.writeScriptBin "backup-manager" (builtins.readFile ../../utils/backup-manager.sh))
+  ];
 
   services.flatpak.packages = [
 
@@ -150,6 +161,55 @@ in
   };
 
   # Ensure host secrets directory exists for docker-compose env files
+  # Create /vol as a proper btrfs subvolume on root filesystem
+  fileSystems."/vol" = {
+    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "subvol=vol" ];
+  };
+
+  # Additional btrbk configurations for backup system
+  services.btrbk.instances = {
+    # Local snapshots of /vol (webserver)
+    "vol-local" = {
+      onCalendar = "daily";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d";
+        snapshot_preserve = "7d 4w 3m";
+        snapshot_create = "always";
+        
+        volume = {
+          "/vol" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+          };
+        };
+      };
+    };
+    
+    # Local backup of /vol to USB HDD (webserver's own data)
+    "vol-to-hdd" = {
+      onCalendar = "weekly";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d";
+        snapshot_preserve = "7d 4w 3m";
+        target_preserve_min = "1w";
+        target_preserve = "4w 6m 3y";
+        incremental = "yes";
+        
+        volume = {
+          "/vol" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+            target = "/mnt/backup-hdd/webserver/snapshots/vol";
+          };
+        };
+      };
+    };
+  };
+
   systemd.tmpfiles.rules = [
   "d /vol/secrets 0750 root root -"
     "d /var/lib/dyndns 0750 root root -"
@@ -166,6 +226,26 @@ in
     "d /vol/allergy/allergy 0755 root root -"
     # uploads.ini host file placeholder (Compose maps /vol/uploads.ini)
     "f /vol/uploads.ini 0644 root root -"
+    # Backup-related directories
+    "d /mnt/backup-hdd 0755 root root -"
+    "d /vol/.btrbk_snapshots 0755 root root -"
+  ];
+
+  # Create btrbk user for SSH access from alphanix
+  users.users.btrbk = {
+    isSystemUser = true;
+    group = "btrbk";
+    home = "/var/lib/btrbk";
+    createHome = true;
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keyFiles = [ "/var/lib/btrbk/.ssh/authorized_keys" ];
+  };
+  users.groups.btrbk = {};
+
+  # Ensure btrbk user has access to backup destinations
+  systemd.tmpfiles.rules = systemd.tmpfiles.rules ++ [
+    "d /var/lib/btrbk/.ssh 0700 btrbk btrbk -"
+    "f /var/lib/btrbk/.ssh/authorized_keys 0600 btrbk btrbk -"
   ];
 
   services.adguardhome = {

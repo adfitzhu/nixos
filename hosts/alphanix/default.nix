@@ -55,10 +55,18 @@ in
     options = [ "defaults" "compress=zstd" "subvol=games" ];
   };
 
+  fileSystems."/vol" = {
+    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    fsType = "btrfs";
+    options = [ "defaults" "compress=zstd" "subvol=vol" ];
+  };
+
   environment.systemPackages = with pkgs; [ 
     pkgs.orca-slicer 
     pkgs.clonehero 
     pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top
+    # Backup management script (temporarily disabled due to path issues)
+    # (pkgs.writeScriptBin "backup-manager" (builtins.readFile ../../utils/backup-manager.sh))
   ];
 
   services.flatpak.packages = [
@@ -133,22 +141,7 @@ in
     };
   };
 
-  # Set up mount point permissions to be user-writable
-  systemd.tmpfiles.rules = [
-    "d /archive 0755 adam users - -"
-    "d /cloud 0755 adam users - -" 
-    "d /localdata 0755 adam users - -"
-    "d /games 0755 adam users - -"
-    # Docker volume directories
-    "d /vol 0755 root root - -"
-    "d /vol/plex 0755 root root - -"
-    "d /vol/plex/config 0755 root root - -"
-    "d /vol/plex/transcode 0755 root root - -"
-    # Immich directories
-    "d /vol/immich 0755 root root - -"
-    "d /vol/immich/data 0755 root root - -"
-    "d /vol/immich/db 0755 root root - -"
-  ];
+
 
   # Docker configuration
   virtualisation.docker = {
@@ -362,6 +355,96 @@ in
     };
   };
 
+
+  # Additional btrbk configurations for backup system
+  services.btrbk.instances = {
+    # Local snapshots of /cloud (alphanix)
+    "cloud-local" = {
+      onCalendar = "daily";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d";
+        snapshot_preserve = "7d 4w 3m";
+        snapshot_create = "always";
+        
+        volume = {
+          "/cloud" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+          };
+        };
+      };
+    };
+    
+    # Local snapshots of /vol (alphanix)
+    "vol-local" = {
+      onCalendar = "daily";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d";
+        snapshot_preserve = "7d 4w 3m";
+        snapshot_create = "always";
+        
+        volume = {
+          "/vol" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+          };
+        };
+      };
+    };
+    
+    # Network backup to webserver (both /cloud and /vol)
+    "data-to-webserver" = {
+      onCalendar = "weekly";
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d"; 
+        snapshot_preserve = "7d 4w 3m";
+        target_preserve_min = "1w";
+        target_preserve = "4w 6m 2y";
+        incremental = "yes";
+        
+        ssh_identity = "/root/.ssh/btrbk_rsa";
+        ssh_user = "btrbk";
+        
+        volume = {
+          "/cloud" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+            target = "ssh://192.168.1.10/mnt/backup-hdd/alphanix/snapshots/cloud";
+          };
+          "/vol" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+            target = "ssh://192.168.1.10/mnt/backup-hdd/alphanix/snapshots/vol";
+          };
+        };
+      };
+    };
+  };
+
+  # Create mount point for USB backup HDD
+  systemd.tmpfiles.rules = [
+    "d /archive 0755 adam users - -"
+    "d /cloud 0755 adam users - -" 
+    "d /localdata 0755 adam users - -"
+    "d /games 0755 adam users - -"
+    # Docker volume directories
+    "d /vol 0755 root root - -"
+    "d /vol/plex 0755 root root - -"
+    "d /vol/plex/config 0755 root root - -"
+    "d /vol/plex/transcode 0755 root root - -"
+    # Immich directories
+    "d /vol/immich 0755 root root - -"
+    "d /vol/immich/data 0755 root root - -"
+    "d /vol/immich/db 0755 root root - -"
+    # Backup mount point
+    "d /mnt/backup-hdd 0755 root root - -"
+    # Btrbk snapshots directories
+    "d /cloud/.btrbk_snapshots 0755 root root - -"
+    "d /vol/.btrbk_snapshots 0755 root root - -"
+  ];
 
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
