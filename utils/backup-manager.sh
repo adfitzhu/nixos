@@ -189,15 +189,15 @@ manual_backup() {
     case "$TARGET" in
         cloud)
             echo "Running manual cloud backup..."
-            systemctl start btrbk-cloud-to-usb || echo "Service may not exist"
+            systemctl start btrbk-cloud-local || echo "Service may not exist"
             ;;
         vol)
             echo "Running manual vol backup..."
-            systemctl start btrbk-vol-to-hdd || echo "Service may not exist"
+            systemctl start btrbk-vol-local || echo "Service may not exist"
             ;;
         network)
             echo "Running network backup..."
-            systemctl start btrbk-cloud-to-webserver || echo "Service may not exist"
+            systemctl start btrbk-data-to-webserver || echo "Service may not exist"
             ;;
         *)
             echo "Unknown target: $TARGET"
