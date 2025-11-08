@@ -380,11 +380,11 @@ in
     
     # Local snapshots of /vol (alphanix)
     "vol-local" = {
-      onCalendar = "daily";
+      onCalendar = "hourly";
       settings = {
         timestamp_format = "long";
-        snapshot_preserve_min = "2d";
-        snapshot_preserve = "7d 4w 3m";
+        snapshot_preserve_min = "6h";
+        snapshot_preserve = "6h 2d 4w 3m";
         snapshot_create = "always";
         
         volume = {
@@ -407,7 +407,8 @@ in
         target_preserve = "4w 6m 2y";
         incremental = "yes";
         
-        ssh_identity = "/root/.ssh/btrbk_rsa";
+        backend_remote = "btrfs-progs-sudo";
+        ssh_identity = "/var/lib/btrbk/.ssh/btrbk_rsa";
         ssh_user = "btrbk";
         
         volume = {

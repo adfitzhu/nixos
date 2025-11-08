@@ -174,11 +174,11 @@ in
   services.btrbk.instances = {
     # Local snapshots of /vol (webserver)
     "vol-local" = {
-      onCalendar = "daily";
+      onCalendar = "hourly";
       settings = {
         timestamp_format = "long";
-        snapshot_preserve_min = "2d";
-        snapshot_preserve = "7d 4w 3m";
+        snapshot_preserve_min = "6h";
+        snapshot_preserve = "6h 2d 4w 3m";
         snapshot_create = "always";
         
         volume = {
