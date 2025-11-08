@@ -38,7 +38,7 @@ in
   };
 
   fileSystems."/cloud" = {
-    device = "/dev/disk/by-label/Storage";
+    device = config.fileSystems."/archive".device;
     fsType = "btrfs";
     options = [ "defaults" "compress=zstd" "subvol=cloud" ];
   };
@@ -50,13 +50,13 @@ in
   };
 
   fileSystems."/games" = {
-    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    device = config.fileSystems."/".device;
     fsType = "btrfs";
     options = [ "defaults" "compress=zstd" "subvol=games" ];
   };
 
   fileSystems."/vol" = {
-    device = "/dev/disk/by-uuid/e10f657a-0e3c-4bf5-bfeb-7b8e35b8c155";
+    device = config.fileSystems."/".device;
     fsType = "btrfs";
     options = [ "defaults" "compress=zstd" "subvol=vol" ];
   };
@@ -65,8 +65,10 @@ in
     pkgs.orca-slicer 
     pkgs.clonehero 
     pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top
-    # Backup management script (temporarily disabled due to path issues)
-    # (pkgs.writeScriptBin "backup-manager" (builtins.readFile ../../utils/backup-manager.sh))
+    # Backup management script
+    (pkgs.writeShellScriptBin "backup-manager" ''
+      exec ${pkgs.bash}/bin/bash ${../../utils/backup-manager.sh} "$@"
+    '')
   ];
 
   services.flatpak.packages = [

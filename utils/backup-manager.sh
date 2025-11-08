@@ -35,33 +35,28 @@ check_backup_health() {
     echo "Host: $HOSTNAME"
     echo ""
     
-    # Check USB HDD
-    if lsblk -f | grep -q "Elements"; then
-        if mountpoint -q /mnt/backup-hdd 2>/dev/null; then
-            USED=$(df -h /mnt/backup-hdd | awk 'NR==2 {print $5}')
-            AVAIL=$(df -h /mnt/backup-hdd | awk 'NR==2 {print $4}')
-            echo "✓ USB HDD mounted - Used: $USED, Available: $AVAIL"
+    # Check USB HDD (only relevant for webserver)
+    if [[ "$HOSTNAME" == "webserver" ]]; then
+        if lsblk -f | grep -q "Elements"; then
+            if mountpoint -q /mnt/backup-hdd 2>/dev/null; then
+                USED=$(df -h /mnt/backup-hdd | awk 'NR==2 {print $5}')
+                AVAIL=$(df -h /mnt/backup-hdd | awk 'NR==2 {print $4}')
+                echo "✓ USB HDD mounted - Used: $USED, Available: $AVAIL"
+            else
+                echo "⚠ USB HDD detected but not mounted"
+            fi
         else
-            echo "⚠ USB HDD detected but not mounted"
+            echo "✗ USB HDD not connected"
         fi
     else
-        echo "✗ USB HDD not connected"
+        echo "ℹ USB HDD check skipped (not webserver host)"
     fi
     echo ""
     
     # Check btrbk services
     echo "=== Service Status ==="
-    if systemctl list-unit-files | grep -q btrbk; then
-        for service in $(systemctl list-unit-files | grep btrbk | awk '{print $1}'); do
-            if [[ $service == *.timer ]]; then
-                STATUS=$(systemctl is-active $service || echo "inactive")
-                ENABLED=$(systemctl is-enabled $service || echo "disabled") 
-                echo "$service: $STATUS ($ENABLED)"
-            fi
-        done
-    else
-        echo "No btrbk services found"
-    fi
+    echo "btrbk timers:"
+    systemctl list-timers --no-pager | grep btrbk || echo "No btrbk timers found"
     echo ""
     
     # Check recent backups

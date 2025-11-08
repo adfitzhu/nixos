@@ -70,8 +70,10 @@ in
   };
 
   environment.systemPackages = with pkgs; [ 
-    # Backup management script (temporarily disabled due to path issues)
-    # (pkgs.writeScriptBin "backup-manager" (builtins.readFile ../../utils/backup-manager.sh))
+    # Backup management script
+    (pkgs.writeShellScriptBin "backup-manager" ''
+      exec ${pkgs.bash}/bin/bash ${../../utils/backup-manager.sh} "$@"
+    '')
   ];
 
   services.flatpak.packages = [
