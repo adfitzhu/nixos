@@ -16,7 +16,6 @@
 
 
   environment.systemPackages = with pkgs; [
-    flatpak
     git
     vlc
     p7zip
@@ -29,29 +28,6 @@
     docker-compose
  
   ];
-  services.flatpak.enable = true;
-  systemd.services.flatpak-repo = {
-    wantedBy = [ "multi-user.target" ];
-    path = [ pkgs.flatpak ];
-    script = ''
-      flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    '';
-  };
-
-  # Declarative Flatpak configuration (packages defined per host)
-  services.flatpak.update.auto = {
-    enable = true;
-    onCalendar = "daily";
-  };
-
-  services.flatpak.uninstallUnmanaged = false;
-
-  # Global flatpak overrides - allows all apps access to home directory
-  services.flatpak.overrides = {
-    global = {
-      Context.filesystems = [ "home" ];
-    };
-  };
   time.timeZone = "America/Los_Angeles";
   i18n = {
     defaultLocale = "en_US.UTF-8";

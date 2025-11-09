@@ -79,10 +79,6 @@ in
     '')
   ];
 
-  services.flatpak.packages = [
-
-  ];
-
   # Caddy reverse proxy (recommended to run as a NixOS service for ACME + systemd integration)
   services.caddy = {
     enable = true;
