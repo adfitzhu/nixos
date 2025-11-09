@@ -1,6 +1,9 @@
 { config, pkgs, lib, unstable, ... }:
 
 let
+  # Desktop mode toggle - set to true to enable desktop + remote access
+  desktopMode = true;  # Change to 'true' to enable desktop, then rebuild
+  
   secretsPath = "/vol/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
 
@@ -162,7 +165,6 @@ in
       '');
   };
 
-  # Ensure host secrets directory exists for docker-compose env files
   # Create /vol as a proper btrfs subvolume on root filesystem
   fileSystems."/vol" = {
     device = config.fileSystems."/".device;
@@ -238,7 +240,7 @@ in
 
   # SSH access for btrbk user (user automatically created by services.btrbk)
   # Add your SSH public key here later: users.users.btrbk.openssh.authorizedKeys.keys = [ "ssh-rsa AAAA..." ];
-  users.users.btrbk.openssh.authorizedKeys.keys = [ ];
+  #users.users.btrbk.openssh.authorizedKeys.keys = [ ];
 
   # Allow btrbk user to run btrfs commands via sudo (needed for remote operations)
   security.sudo.extraRules = [
@@ -260,15 +262,16 @@ in
     openFirewall = true; # opens 53/udp+tcp and the UI port
   };
 
-  services.desktopManager.plasma6.enable = true;
-  services.displayManager = {
+  # Desktop services - only enabled when desktopMode = true
+  services.desktopManager.plasma6.enable = desktopMode;
+  services.displayManager = lib.mkIf desktopMode {
     sddm.enable = true;
     sddm.wayland.enable = true;
     autoLogin = { enable = true; user = "adam"; };
   };
 
-  # Sunshine game streaming service
-  services.sunshine = {
+  # Sunshine game streaming service - only when desktop enabled
+  services.sunshine = lib.mkIf desktopMode {
     enable = true;
     capSysAdmin = true;
     openFirewall = true;

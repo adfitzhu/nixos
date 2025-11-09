@@ -7,6 +7,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
+  
+  # Automatic boot failure recovery with boot counting
+  boot.loader.timeout = 5;  # Give you 5 seconds to intervene manually
+  boot.loader.systemd-boot.graceful = true;  # Enable graceful boot failure handling
   networking.networkmanager.enable = true;
   system.stateVersion = "25.05";
 
@@ -23,7 +27,7 @@
     python3Full
     python3Packages.pyqt6
     docker-compose
-    #unstable.tailscale
+ 
   ];
   services.flatpak.enable = true;
   systemd.services.flatpak-repo = {
