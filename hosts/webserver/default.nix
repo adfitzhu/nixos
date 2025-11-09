@@ -2,7 +2,7 @@
 
 let
   # Desktop mode toggle - set to true to enable desktop + remote access
-  desktopMode = true;  # Change to 'true' to enable desktop, then rebuild
+  desktopMode = false;  # Change to 'true' to enable desktop, then rebuild
   
   secretsPath = "/vol/secrets/secrets.nix";
   secrets = if builtins.pathExists secretsPath then import secretsPath else {};
