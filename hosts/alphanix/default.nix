@@ -27,7 +27,7 @@ in
       }];
     };
     defaultGateway = "192.168.1.1";
-    nameservers = [ "192.168.1.60" "192.168.1.1" ];
+    nameservers = [ "192.168.1.10" "192.168.1.1" ];
   };
 
   # Additional filesystem mounts
