@@ -78,7 +78,7 @@
   # Fingerprint reader configuration
   services.fprintd.enable = true;
   security.pam.services = {
-    #sudo.fprintAuth = true;
+    sudo.fprintAuth = false;
     sddm.fprintAuth = true;
   };
 
@@ -87,7 +87,7 @@
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
-  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#nixtop --no-write-lock-file --impure
+  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos/testing#nixtop --no-write-lock-file --impure
     '';
   };
   systemd.timers.my-auto-upgrade = {

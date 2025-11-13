@@ -39,11 +39,10 @@
     btrfs-assistant    
     kdePackages.filelight
     #rustdeskS
-    python3Full
+    python3
     python3Packages.pyqt6
     wine
     steam-run
-    #syncthingtray
     firefox
     google-chrome
     vscode
