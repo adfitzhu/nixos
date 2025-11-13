@@ -54,7 +54,7 @@ in
     nameservers = [ "8.8.8.8" "192.168.1.1" ];
     
     # Firewall configuration
-    firewall.allowedTCPPorts = [ 80 443 3001 8080 ];
+    firewall.allowedTCPPorts = [ 80 443 3001 8080 53];
   };
 
   # Mount NFS share from alphanix
