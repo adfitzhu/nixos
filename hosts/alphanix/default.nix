@@ -132,8 +132,8 @@ in
           name = "Desktop";
           prep-cmd = [
             {
-              do = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.HDMI-A-1.disable";
-              undo = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.HDMI-A-1.enable output.HDMI-A-1.position.1920,0";
+              do = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.DP-2.disable";
+              undo = "${pkgs.kdePackages.libkscreen}/bin/kscreen-doctor output.DP-2.enable output.DP-2.position.1920,0";
             }
           ];
           exclude-global-prep-cmd = "false";
