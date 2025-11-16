@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Serve NixOS Config
+Comment=Start HTTP server for remote NixOS rebuilds
+Icon=network-server
+Exec=konsole --hold -e /home/adam/github/nixos/utils/serve-config.sh
+Terminal=false
+Categories=Development;System;
+Keywords=nixos;http;server;config;
+StartupNotify=true
