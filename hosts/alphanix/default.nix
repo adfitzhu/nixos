@@ -11,6 +11,7 @@ in
     ../../bundles/desktop.nix
     ../../bundles/server.nix
     ../../bundles/gaming.nix
+    ../../bundles/localAI.nix
     ../../users/adam/user.nix
     ../../users/guest/user.nix
   ];
