@@ -36,6 +36,8 @@ services:
       - SKIP_DOMAIN_VALIDATION=true
       # Configure Apache port to avoid conflict with Caddy on 443
       - APACHE_PORT=11000
+      # Allow Collabora to use host's /tmp for jail setup
+      - COLLABORA_SECCOMP_DISABLED=true
     networks:
       - backend
 
