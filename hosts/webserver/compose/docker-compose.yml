@@ -16,6 +16,11 @@ services:
       - "8080:8080"   # AIO admin interface and initial setup (accessible externally)
       # Note: APACHE_PORT=11000 is internal only, Caddy will proxy to the Nextcloud container directly
       # Optional: AIO can also run services on additional ports; keep them loopback-bound and add Caddy routes as needed.
+    # Security options needed for Collabora/OnlyOffice document editing
+    cap_add:
+      - MKNOD
+    security_opt:
+      - apparmor:unconfined
     volumes:
       # Use the named volume that's backed by /vol/nextcloud/aio-config
       - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
