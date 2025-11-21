@@ -36,7 +36,11 @@ in
   virtualisation.virtualbox.guest.enable = true;
   services.xserver.videoDrivers = [ "virtualbox" ];
 
-
+  # Docker configuration overrides for Nextcloud AIO containers
+  virtualisation.docker.daemon.settings = {
+    # Disable default seccomp profile to allow Collabora/OnlyOffice to work
+    "seccomp-profile" = "unconfined";
+  };
 
   # Networking configuration
   networking = {
