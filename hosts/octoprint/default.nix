@@ -22,39 +22,34 @@ in
   # Networking configuration
   networking = {
     hostName = "Octoprint";
-    
-    # Static IP configuration
-    useDHCP = false;
-    interfaces.enp2s0 = {
-      ipv4.addresses = [{
-        address = "192.168.1.50";
-        prefixLength = 24;
-      }];
-    };
-    defaultGateway = "192.168.1.1";
-    nameservers = [ "192.168.1.10" "192.168.1.1" ];
+  # useDHCP = true;  # Commented out to avoid conflict with NetworkManager
+    # Static IP config for enp2s0 is commented out for WiFi testing.
+    # interfaces.enp2s0 = {
+    #   ipv4.addresses = [{
+    #     address = "192.168.1.50";
+    #     prefixLength = 24;
+    #   }];
+    # };
+    # defaultGateway = "192.168.1.1";
+    # nameservers = [ "192.168.1.10" "192.168.1.1" ];
   };
 
   # Filesystem mounts
-  fileSystems."/vol" = {
-    device = "/dev/disk/by-label/VOL";  # Adjust this label to match your disk
-    fsType = "ext4";  # or "btrfs" if you prefer
-    options = [ "defaults" ];
-  };
-
-  # Desktop environment (only when desktopMode = true)
-  services.displayManager = lib.mkIf desktopMode {
-    sddm.enable = true;
-    sddm.wayland.enable = true;
-    autoLogin = { enable = true; user = "adam"; };
-  };
-
-  services.desktopManager.plasma6.enable = desktopMode;
+  # (Temporarily disabled) Filesystem mount for /vol.
+  # You mentioned there's currently nothing mounted at /vol for testing, so
+  # the mount is commented out. The tmpfiles rules below will still create
+  # /vol (root:root 0755) and /vol/octoprint (owned by octoprint) so OctoPrint
+  # can store state.
+  # Uncomment when the disk is available.
+  # fileSystems."/vol" = {
+  #   device = "/dev/disk/by-label/VOL";  # Adjust this label to match your disk
+  #   fsType = "ext4";  # or "btrfs" if you prefer
+  #   options = [ "defaults" ];
+  # };
 
   # OctoPrint service configuration
   services.octoprint = {
     enable = true;
-    port = 90;  # Match the docker compose port
     host = "0.0.0.0";  # Listen on all interfaces
     openFirewall = true;
     stateDir = "/vol/octoprint";  # Use /vol for persistent storage
@@ -92,7 +87,7 @@ in
     serviceConfig = {
       Type = "simple";
       User = "octoprint";
-      ExecStart = "${pkgs.mjpg-streamer}/bin/mjpg_streamer -i 'input_uvc.so -d /dev/video0 -r 640x480 -f 10' -o 'output_http.so -p 8080 -w ${pkgs.mjpg-streamer}/share/mjpg-streamer/www'";
+      ExecStart = "${pkgs.mjpg-streamer}/bin/mjpg_streamer -i 'input_uvc.so -d /dev/video0 -r 1920x1080 -f 10' -o 'output_http.so -p 8080 -w ${pkgs.mjpg-streamer}/share/mjpg-streamer/www'";
       Restart = "always";
     };
   };
