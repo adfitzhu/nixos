@@ -45,7 +45,7 @@
 
 
   environment.systemPackages = with pkgs; [ 
-    pkgs.orca-slicer
+    unstable.orca-slicer
     pkgs.clonehero
      ];
 

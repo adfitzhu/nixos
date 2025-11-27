@@ -14,6 +14,7 @@
   environment.systemPackages = with pkgs; [
     kdePackages.discover
     kdePackages.kdesu
+    kdePackages.kcalc
     gparted
     kdePackages.partitionmanager
     exfatprogs 
