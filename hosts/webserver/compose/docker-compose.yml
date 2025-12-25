@@ -38,6 +38,8 @@ services:
       - SKIP_DOMAIN_VALIDATION=true
       # Configure Apache port to avoid conflict with Caddy on 443
       - APACHE_PORT=11000
+      # Configure external storage for NFS cloud share
+      - NEXTCLOUD_MOUNT=/cloud
     networks:
       - backend
 
