@@ -7,22 +7,14 @@
   # Enable Ollama service
   services.ollama = {
     enable = true;
-    acceleration = null; # Intel Arc uses Level Zero/OpenVINO, not CUDA/ROCm
+    acceleration = null; # Use CPU/integrated GPU - Intel Arc not supported
     # Listen on all interfaces to allow Android/remote access
     host = "0.0.0.0";
     port = 11434;
     # Store models in a dedicated location
     home = "/var/lib/ollama";
-    # Use all available GPUs
+    # Use CPU with optimizations
     environmentVariables = {
-      # Intel Arc GPU configuration via Level Zero
-      OLLAMA_INTEL_GPU = "1";
-      # Use Level Zero backend for Intel GPUs
-      OLLAMA_LLM_LIBRARY = "cpu_avx2";
-      SYCL_DEVICE_FILTER = "level_zero";
-      ONEAPI_DEVICE_SELECTOR = "level_zero:gpu";
-      # Enable verbose logging for troubleshooting
-      OLLAMA_DEBUG = "1";
       # Set number of parallel requests
       OLLAMA_NUM_PARALLEL = "4";
       # Max loaded models
@@ -38,9 +30,6 @@
       open-webui = {
         image = "ghcr.io/open-webui/open-webui:main";
         autoStart = true;
-        ports = [
-          "3000:8080"
-        ];
         volumes = [
           "open-webui:/app/backend/data"
         ];
@@ -49,8 +38,56 @@
           "--network=host"
         ];
         environment = {
+          # Primary backend - Ollama
           OLLAMA_BASE_URL = "http://127.0.0.1:11434";
+          # Additional OpenAI-compatible backends
+          OPENAI_API_BASE_URLS = "http://127.0.0.1:4000/v1";  # LiteLLM proxy for OpenVINO
+          ENABLE_OPENAI_API = "true";
+          # Allow multiple model sources
+          ENABLE_MODEL_FILTER = "false";
         };
+      };
+
+      # Intel OpenVINO Model Server for Intel GPU acceleration
+      openvino-model-server = {
+        image = "openvino/model_server:latest";
+        autoStart = false; # Start manually when needed
+        ports = [
+          "9000:9000"  # gRPC API
+          "8001:8001"  # REST API
+        ];
+        volumes = [
+          "/var/lib/openvino-models:/models"  # Model storage
+          "/tmp/openvino:/tmp"               # Temporary files
+        ];
+        environment = {
+          # Enable Intel GPU
+          DEVICE = "GPU";
+          # Log level
+          LOG_LEVEL = "INFO";
+        };
+        extraOptions = [
+          "--device=/dev/dri"  # Access to Intel GPU
+          "--user=root"        # Need root for GPU access
+        ];
+      };
+
+      # LiteLLM proxy - OpenAI-compatible API for multiple backends
+      litellm-proxy = {
+        image = "ghcr.io/berriai/litellm:main-latest";
+        autoStart = false; # Start when needed
+        ports = [
+          "4000:4000"  # OpenAI-compatible API
+        ];
+        volumes = [
+          "/var/lib/litellm:/app/proxy_config"
+        ];
+        environment = {
+          LITELLM_MASTER_KEY = "sk-1234567890";  # Set your own key
+        };
+        extraOptions = [
+          "--network=host"
+        ];
       };
     };
   };
@@ -63,6 +100,7 @@
       intel-media-driver     # VA-API support
       vpl-gpu-rt            # Video processing
       level-zero            # Low-level GPU interface
+      openvino              # OpenVINO toolkit for Intel GPUs
     ];
   };
 
@@ -72,15 +110,48 @@
     ollama
     
     
-    # Helper script for Ollama setup
-    (pkgs.writeShellScriptBin "ollama-setup" ''
+    # Helper scripts
+    (writeShellScriptBin "setup-openvino" ''
+      #!/usr/bin/env bash
+      # Setup OpenVINO Model Server + Open WebUI Integration
+      echo "Setting up Intel OpenVINO Model Server with Open WebUI integration..."
+      
+      # Create directories
+      sudo mkdir -p /var/lib/openvino-models /var/lib/litellm
+      sudo chown -R $USER:users /var/lib/openvino-models /var/lib/litellm
+      
+      # Create LiteLLM config for OpenVINO integration
+      cat > /var/lib/litellm/config.yaml << 'EOF'
+model_list:
+  - model_name: openvino-llama
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_base: http://localhost:8001/v1
+      api_key: dummy-key
+
+litellm_settings:
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+EOF
+
+      echo "Setup complete!"
+      echo ""
+      echo "Next steps:"
+      echo "1. Convert a model: pip install openvino-dev && mo --input_model model.onnx --output_dir /var/lib/openvino-models/llama"
+      echo "2. Start OpenVINO: sudo systemctl start docker-openvino-model-server"
+      echo "3. Start LiteLLM: sudo systemctl start docker-litellm-proxy" 
+      echo "4. In Open WebUI, add OpenAI API endpoint: http://localhost:4000/v1"
+      echo ""
+    '')
+
+    (writeShellScriptBin "ollama-status" ''
       #!/usr/bin/env bash
       
       echo "Ollama AI Setup Helper"
       echo "======================"
       echo ""
       echo "Ollama is running on: http://localhost:11434"
-      echo "Web UI is available at: http://localhost:3000"
+      echo "Web UI is available at: http://localhost:8080"
       echo ""
       echo "Suggested models to pull:"
       echo "  - llama3.2:latest (3B - Fast, good for coding)"
@@ -99,6 +170,18 @@
       echo "  or"
       echo "  nvtop"
       echo ""
+      echo "Intel GPU Acceleration via OpenVINO:"
+      echo "  1. Start OpenVINO: sudo systemctl start docker-openvino-model-server"
+      echo "  2. Start LiteLLM proxy: sudo systemctl start docker-litellm-proxy"
+      echo "  3. OpenVINO REST API: http://localhost:8001/v1/config"
+      echo "  4. OpenAI-compatible API: http://localhost:4000/v1/chat/completions"
+      echo "  5. Models directory: /var/lib/openvino-models/"
+      echo ""
+      echo "Open WebUI Integration:"
+      echo "  - Ollama models: Available by default"
+      echo "  - OpenVINO models: Via OpenAI API settings in Open WebUI"
+      echo "  - Add API endpoint: http://localhost:4000/v1"
+      echo ""
       echo "Android app recommendations:"
       echo "  - Enchanted (supports custom Ollama servers)"
       echo "  - AnythingLLM Mobile"
@@ -115,7 +198,10 @@
   networking.firewall = {
     allowedTCPPorts = [
       11434  # Ollama API
-      3000   # Open WebUI
+      8080   # Open WebUI (host networking)
+      9000   # OpenVINO Model Server gRPC
+      8001   # OpenVINO Model Server REST
+      4000   # LiteLLM proxy (OpenAI-compatible)
     ];
   };
 

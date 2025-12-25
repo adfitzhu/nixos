@@ -63,6 +63,7 @@ in
   };
 
   environment.systemPackages = with pkgs; [ 
+    pkgs.qpwgraph
     pkgs.orca-slicer 
     pkgs.clonehero 
     pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top
