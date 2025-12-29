@@ -11,6 +11,7 @@ in
     ../../bundles/desktop.nix
     ../../bundles/server.nix
     ../../bundles/gaming.nix
+    ../../bundles/musicprod.nix
     ../../bundles/localAI.nix
     ../../users/adam/user.nix
     ../../users/guest/user.nix
@@ -427,6 +428,28 @@ in
         };
       };
     };
+    
+    # Manual backup to external SafeDrive HDD
+    "cloud-to-safedrive" = {
+      onCalendar = null; # Manual execution only
+      settings = {
+        timestamp_format = "long";
+        snapshot_preserve_min = "2d";
+        snapshot_preserve = "2d";
+        target_preserve_min = "2d";
+        target_preserve = "2d 1w";  # Keep recent backups but minimal history
+        incremental = "yes";    # Enable incremental transfers
+        snapshot_create = "ondemand";
+        
+        volume = {
+          "/cloud" = {
+            snapshot_dir = ".btrbk_snapshots";
+            subvolume = ".";
+            target = "/run/media/adam/SafeDrive/cloud";
+          };
+        };
+      };
+    };
   };
 
   # Create mount point for USB backup HDD
@@ -449,6 +472,9 @@ in
     # Btrbk snapshots directories
     "d /cloud/.btrbk_snapshots 0755 root root - -"
     "d /vol/.btrbk_snapshots 0755 root root - -"
+    # External SafeDrive mount point and backup directory
+    "d /run/media/adam/SafeDrive 0755 adam users - -"
+    "d /run/media/adam/SafeDrive/cloud 0755 adam users - -"
   ];
 
   systemd.services.my-auto-upgrade = {
