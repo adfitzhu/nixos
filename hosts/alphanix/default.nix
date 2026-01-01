@@ -17,7 +17,17 @@ in
     ../../users/guest/user.nix
   ];
 
+  # System-wide ulimits for ESYNC and gaming
+  systemd.extraConfig = ''
+    DefaultLimitNOFILE=1048576
+  '';
   
+  # Additional gaming optimizations
+  boot.kernel.sysctl = {
+    "fs.file-max" = 2097152;
+  };
+
+
   # Network configuration
   networking = {
     hostName = "alphanix";
@@ -65,6 +75,7 @@ in
 
   environment.systemPackages = with pkgs; [ 
     pkgs.qpwgraph
+    pkgs.kdePackages.kdeconnect-kde
     pkgs.orca-slicer 
     pkgs.clonehero 
     pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top
@@ -434,16 +445,13 @@ in
       onCalendar = null; # Manual execution only
       settings = {
         timestamp_format = "long";
-        snapshot_preserve_min = "2d";
-        snapshot_preserve = "2d";
-        target_preserve_min = "2d";
-        target_preserve = "2d 1w";  # Keep recent backups but minimal history
-        incremental = "yes";    # Enable incremental transfers
-        snapshot_create = "ondemand";
+        snapshot_preserve = "no";           # Don't preserve source snapshots
+        target_preserve = "400d";           # Keep for 400 days (~13 months)
+        incremental = "yes";                # Enable incremental transfers
+        snapshot_create = "ondemand";       # Create fresh snapshot when running
         
         volume = {
           "/cloud" = {
-            snapshot_dir = ".btrbk_snapshots";
             subvolume = ".";
             target = "/run/media/adam/SafeDrive/cloud";
           };
@@ -472,9 +480,6 @@ in
     # Btrbk snapshots directories
     "d /cloud/.btrbk_snapshots 0755 root root - -"
     "d /vol/.btrbk_snapshots 0755 root root - -"
-    # External SafeDrive mount point and backup directory
-    "d /run/media/adam/SafeDrive 0755 adam users - -"
-    "d /run/media/adam/SafeDrive/cloud 0755 adam users - -"
   ];
 
   systemd.services.my-auto-upgrade = {
