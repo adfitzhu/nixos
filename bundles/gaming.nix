@@ -30,6 +30,32 @@
     enable32Bit = true;
   };
 
+  # Gaming optimizations and ESYNC limits
+  systemd.user.extraConfig = ''
+    DefaultLimitNOFILE=1048576
+  '';
+  
+  # Set user session limits for ESYNC compatibility
+  security.pam.loginLimits = [
+    {
+      domain = "@users";
+      type = "soft";
+      item = "nofile";
+      value = "1048576";
+    }
+    {
+      domain = "@users";
+      type = "hard";
+      item = "nofile";
+      value = "1048576";
+    }
+  ];
+  
+  # Additional gaming kernel parameters
+  boot.kernel.sysctl = {
+    "fs.file-max" = 2097152;
+    "vm.max_map_count" = 2147483642;  # For games that need large memory mappings
+  };
 
   # Waydroid for Android gaming
   virtualisation.waydroid.enable = true;

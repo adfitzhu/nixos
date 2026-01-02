@@ -17,17 +17,6 @@ in
     ../../users/guest/user.nix
   ];
 
-  # System-wide ulimits for ESYNC and gaming
-  systemd.extraConfig = ''
-    DefaultLimitNOFILE=1048576
-  '';
-  
-  # Additional gaming optimizations
-  boot.kernel.sysctl = {
-    "fs.file-max" = 2097152;
-  };
-
-
   # Network configuration
   networking = {
     hostName = "alphanix";
@@ -75,7 +64,6 @@ in
 
   environment.systemPackages = with pkgs; [ 
     pkgs.qpwgraph
-    pkgs.kdePackages.kdeconnect-kde
     pkgs.orca-slicer 
     pkgs.clonehero 
     pkgs.intel-gpu-tools  # For monitoring Intel GPU usage with intel_gpu_top

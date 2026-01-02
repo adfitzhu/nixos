@@ -53,6 +53,9 @@
   (import ../utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
   unstable.tailscale
   ];
+
+  programs.kdeconnect.enable = true;
+
   services.flatpak.enable = true;
   systemd.services.flatpak-repo = {
     wantedBy = [ "multi-user.target" ];
