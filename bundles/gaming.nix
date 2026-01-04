@@ -6,7 +6,7 @@
     steam-run            # FHS wrapper for running external binaries
     heroic               # Epic Games launcher
     bottles              # Wine bottles manager
-    protonup             # Manage Proton-GE versions
+    protonup-ng             # Manage Proton-GE versions
     gamemode             # Feral GameMode
     gpu-viewer           # GPU monitoring
     lutris               # Gaming platform with installers

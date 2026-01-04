@@ -40,7 +40,7 @@
     btrfs-assistant    
     kdePackages.filelight
     #rustdeskS
-    python3Full
+    python3
     python3Packages.pyqt6
     wine
     steam-run
@@ -99,10 +99,6 @@
     enable = true;
     browsing = true;
     drivers = [ pkgs.epson-escpr2 ];
-    extraConf = ''
-      FileDevice No
-      DefaultPrinter None
-    '';
   };
   services.avahi = {
     enable = true;

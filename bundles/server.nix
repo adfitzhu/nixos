@@ -23,7 +23,7 @@
     vista-fonts
     btrfs-progs
     btrbk
-    python3Full
+    python3
     python3Packages.pyqt6
     docker-compose
  
