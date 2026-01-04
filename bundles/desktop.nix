@@ -99,6 +99,7 @@
     enable = true;
     browsing = true;
     drivers = [ pkgs.epson-escpr2 ];
+    browsed.enable = false;  # Disable cups-browsed to prevent phantom printers
   };
   services.avahi = {
     enable = true;
