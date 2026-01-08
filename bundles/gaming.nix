@@ -12,6 +12,8 @@
     lutris               # Gaming platform with installers
     clonehero            # Clone Hero rhythm game
     superTuxKart         # TuxKart racing game
+    winetricks
+    wineWowPackages.stable  # Wine with 64-bit support
   ];
 
   # Steam configuration
