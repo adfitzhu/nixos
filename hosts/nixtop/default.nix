@@ -68,7 +68,7 @@
 
   # VirtualBox configuration
   virtualisation.virtualbox.host = {
-    enable = true;
+    enable = false;
     enableExtensionPack = true;
   };
     # Prevent KVM from loading so VirtualBox can use VT-x/AMD-V.
