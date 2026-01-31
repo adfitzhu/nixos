@@ -63,6 +63,17 @@
           ENABLE_MODEL_FILTER = "false";
           # Disable authentication (for home/local use only)
           WEBUI_AUTH = "false";
+          # Audio: Use Speaches for TTS (OpenAI-compatible)
+          AUDIO_TTS_ENGINE = "openai";
+          AUDIO_TTS_OPENAI_API_BASE_URL = "http://127.0.0.1:8000/v1";
+          AUDIO_TTS_OPENAI_API_KEY = "not-needed";
+          AUDIO_TTS_MODEL = "speaches-ai/Kokoro-82M-v1.0-ONNX";  # Full model ID required
+          AUDIO_TTS_VOICE = "af_heart";  # Kokoro voice (natural female)
+          # Audio: Use Speaches for STT (OpenAI-compatible)
+          AUDIO_STT_ENGINE = "openai";
+          AUDIO_STT_OPENAI_API_BASE_URL = "http://127.0.0.1:8000/v1";
+          AUDIO_STT_OPENAI_API_KEY = "not-needed";
+          AUDIO_STT_MODEL = "Systran/faster-whisper-small.en";  # Full model ID required
         };
       };
 
@@ -84,24 +95,33 @@
         cmd = [ "--config" "/app/config/config.yaml" "--port" "4000" ];
       };
 
-      # Stable Diffusion WebUI with OpenVINO for Intel Arc GPU
-      # Access at: http://localhost:7860
-      stable-diffusion = {
-        image = "ghcr.io/openvino-dev-samples/stable_diffusion.openvino:latest";
-        autoStart = false;  # Start manually: sudo systemctl start docker-stable-diffusion
+      # Speaches - Combined TTS + STT server (OpenAI-compatible)
+      # Includes Piper TTS, Kokoro TTS (#1 ranked), and Faster-Whisper STT
+      # Access at: http://localhost:8000
+      # Note: CPU-only for now - Whisper has no Intel GPU support in Docker yet
+      # Piper TTS is designed for CPU and is very fast anyway
+      speaches = {
+        image = "ghcr.io/speaches-ai/speaches:latest-cpu";
+        autoStart = true;
         volumes = [
-          "sd-models:/sd/models"
-          "sd-outputs:/sd/outputs"
+          "speaches-cache:/home/ubuntu/.cache/huggingface/hub"
+        ];
+        extraOptions = [
+          "--network=host"
         ];
         environment = {
-          DEVICE = "GPU";
+          # Use environment variables for config (double underscore for nested)
+          UVICORN_HOST = "0.0.0.0";
+          UVICORN_PORT = "8000";
+          # Connect to local Ollama for voice chat mode
+          CHAT_COMPLETION_BASE_URL = "http://127.0.0.1:11434/v1";
+          # Model settings
+          STT_MODEL_TTL = "300";  # Unload after 5 min idle
+          TTS_MODEL_TTL = "300";
+          # Enable VAD for better transcription
+          _UNSTABLE_VAD_FILTER = "true";
+          LOG_LEVEL = "info";
         };
-        extraOptions = [
-          "--device=/dev/dri"
-          "--network=host"
-          "--shm-size=8g"
-          "--privileged"
-        ];
       };
     };
   };
@@ -399,70 +419,151 @@ EOF
       echo "✅ Done! Run 'ai-status' to check."
     '')
 
-    # Image generation commands
-    (writeShellScriptBin "ai-image-start" ''
+    # Voice chat status
+    (writeShellScriptBin "ai-voice-status" ''
       #!/usr/bin/env bash
-      echo "🎨 Starting Stable Diffusion (Intel Arc GPU)"
-      echo "============================================="
+      echo "🎤 Voice Chat Status (Speaches)"
+      echo "================================"
       echo ""
-      echo "Starting container (first run will download ~10GB of models)..."
-      sudo systemctl start docker-stable-diffusion
       
-      echo ""
-      echo "Waiting for WebUI to start..."
-      for i in {1..60}; do
-        if curl -s http://localhost:7860 >/dev/null 2>&1; then
-          echo ""
-          echo "✅ Stable Diffusion WebUI is ready!"
-          echo "🌐 Open: http://localhost:7860"
-          exit 0
+      # Check Speaches
+      if curl -s http://localhost:8000/health >/dev/null 2>&1; then
+        echo "✅ Speaches:  Running (http://localhost:8000)"
+        echo ""
+        
+        # Check loaded models
+        MODELS=$(curl -s http://localhost:8000/v1/models 2>&1)
+        if echo "$MODELS" | grep -q "Kokoro"; then
+          echo "   TTS Model: speaches-ai/Kokoro-82M-v1.0-ONNX ✅"
+        else
+          echo "   TTS Model: Not loaded ⚠️  (run: ai-voice-setup)"
         fi
-        echo -n "."
-        sleep 2
-      done
-      
+        if echo "$MODELS" | grep -q "whisper"; then
+          echo "   STT Model: Systran/faster-whisper-small.en ✅"
+        else
+          echo "   STT Model: Not loaded ⚠️  (run: ai-voice-setup)"
+        fi
+        echo ""
+        echo "   WebUI: http://localhost:8000 (built-in test interface)"
+      elif docker ps --format '{{.Names}}' | grep -q "speaches"; then
+        echo "⏳ Speaches:  Starting up..."
+        echo "   Check progress: ai-voice-logs"
+      else
+        echo "❌ Speaches:  Not running"
+        echo "   Try: sudo systemctl start docker-speaches"
+      fi
       echo ""
-      echo "⚠️  WebUI not responding yet. Check logs with: ai-image-logs"
+      
+      echo "💡 Usage:"
+      echo "   1. Run: ai-voice-setup (first time, downloads models)"
+      echo "   2. Open http://localhost:3000"
+      echo "   3. Click the microphone icon to speak"
+      echo "   4. AI will respond with voice!"
+      echo ""
+      echo "🎭 Voice Options (change in Open WebUI Settings → Audio):"
+      echo "   Kokoro voices: af_heart, af_bella, am_adam, am_michael"
+      echo ""
+      echo "⚠️  Note: Voice runs on CPU (no Intel GPU Whisper support yet)"
+      echo "   Kokoro TTS is very fast and high quality on CPU"
     '')
 
-    (writeShellScriptBin "ai-image-stop" ''
+    # Setup voice models (download on first use)
+    (writeShellScriptBin "ai-voice-setup" ''
       #!/usr/bin/env bash
-      echo "🛑 Stopping Stable Diffusion..."
-      sudo systemctl stop docker-stable-diffusion
-      echo "✅ Stopped"
-    '')
-
-    (writeShellScriptBin "ai-image-logs" ''
-      #!/usr/bin/env bash
-      echo "📜 Stable Diffusion Container Logs"
-      docker logs -f stable-diffusion
-    '')
-
-    (writeShellScriptBin "ai-image-info" ''
-      #!/usr/bin/env bash
-      echo "🎨 Image Generation on Intel Arc A770"
+      echo "🎤 Setting up Voice Models (Speaches)"
       echo "======================================"
       echo ""
-      echo "📦 Stable Diffusion WebUI (OpenVINO)"
-      echo "   Status: $(systemctl is-active docker-stable-diffusion 2>/dev/null || echo 'not configured')"
-      echo "   URL: http://localhost:7860"
-      echo "   Start: ai-image-start"
-      echo "   Stop:  ai-image-stop"
+      
+      if ! curl -s http://localhost:8000/health >/dev/null 2>&1; then
+        echo "❌ Speaches not running! Start it first:"
+        echo "   sudo systemctl start docker-speaches"
+        exit 1
+      fi
+      
+      echo "📥 Downloading Kokoro TTS model (~180MB)..."
+      curl -X POST "http://localhost:8000/v1/models/speaches-ai%2FKokoro-82M-v1.0-ONNX"
       echo ""
-      echo "🚀 Quick Start:"
-      echo "   1. Run: ai-image-start"
-      echo "   2. Wait for download/startup (~5-10 min first time)"
-      echo "   3. Open: http://localhost:7860"
+      
+      echo "📥 Downloading Whisper STT model (~500MB)..."
+      curl -X POST "http://localhost:8000/v1/models/Systran%2Ffaster-whisper-small.en"
       echo ""
-      echo "💡 Features:"
-      echo "   • Text-to-Image generation"
-      echo "   • Image-to-Image transformation"
-      echo "   • Inpainting"
-      echo "   • Uses Intel Arc GPU via OpenVINO"
+      
+      echo "✅ Voice models installed!"
       echo ""
-      echo "📁 Data stored in Docker volumes:"
-      echo "   • Models: sd-models"
-      echo "   • Outputs: sd-outputs"
+      echo "Test with: ai-voice-test"
+      echo "Or open: http://localhost:3000"
+    '')
+
+    # Test TTS
+    (writeShellScriptBin "ai-voice-test" ''
+      #!/usr/bin/env bash
+      echo "🧪 Testing Voice Services (Speaches)"
+      echo "====================================="
+      echo ""
+      
+      # First check if models are loaded
+      MODELS=$(curl -s http://localhost:8000/v1/models 2>&1)
+      if echo "$MODELS" | grep -q '"data":\[\]'; then
+        echo "⚠️  No models loaded! Downloading required models..."
+        echo ""
+        echo "📥 Downloading Kokoro TTS model..."
+        curl -s -X POST "http://localhost:8000/v1/models/speaches-ai%2FKokoro-82M-v1.0-ONNX" >/dev/null 2>&1
+        echo "📥 Downloading Whisper STT model..."
+        curl -s -X POST "http://localhost:8000/v1/models/Systran%2Ffaster-whisper-small.en" >/dev/null 2>&1
+        echo "✅ Models downloaded!"
+        echo ""
+      fi
+      
+      echo "📢 Testing Text-to-Speech (Kokoro)..."
+      RESPONSE=$(curl -s -X POST http://localhost:8000/v1/audio/speech \
+        -H "Content-Type: application/json" \
+        -d '{"model": "speaches-ai/Kokoro-82M-v1.0-ONNX", "voice": "af_heart", "input": "Hello! Voice chat is working great."}' \
+        --output /tmp/test-tts.mp3 -w "%{http_code}" 2>&1)
+      
+      if [ "$RESPONSE" = "200" ] && [ -s /tmp/test-tts.mp3 ]; then
+        echo "✅ TTS working! Playing audio..."
+        ${pkgs.mpv}/bin/mpv --no-video /tmp/test-tts.mp3 2>/dev/null || \
+          echo "   Audio saved to /tmp/test-tts.mp3 (install mpv to play)"
+      else
+        echo "❌ TTS error (HTTP $RESPONSE)"
+        echo "   Check: ai-voice-logs"
+      fi
+      echo ""
+      
+      echo "🎤 Testing Speech-to-Text (Whisper)..."
+      if [ -f /tmp/test-tts.mp3 ]; then
+        RESPONSE=$(curl -s -X POST http://localhost:8000/v1/audio/transcriptions \
+          -F "file=@/tmp/test-tts.mp3" \
+          -F "model=Systran/faster-whisper-small.en" 2>&1)
+        
+        if echo "$RESPONSE" | grep -q "text"; then
+          echo "✅ STT working!"
+          echo "   Transcribed: $(echo "$RESPONSE" | grep -o '"text":"[^"]*"' | sed 's/"text":"//;s/"$//')"
+        else
+          echo "⚠️  STT response: $RESPONSE"
+        fi
+      else
+        echo "⚠️  No test audio file (TTS must work first)"
+      fi
+      echo ""
+      
+      echo "🎙️  Voice chat ready! Open http://localhost:3000"
+    '')
+
+    # Voice logs
+    (writeShellScriptBin "ai-voice-logs" ''
+      #!/usr/bin/env bash
+      echo "📜 Speaches Logs"
+      echo "================"
+      docker logs -f speaches
+    '')
+
+    # Restart voice services
+    (writeShellScriptBin "ai-voice-restart" ''
+      #!/usr/bin/env bash
+      echo "🔄 Restarting Speaches..."
+      sudo systemctl restart docker-speaches
+      echo "✅ Done! Run 'ai-voice-status' to check."
     '')
   ];
 
@@ -471,7 +572,7 @@ EOF
     11434  # Ollama API
     3000   # Open WebUI
     4000   # LiteLLM (OpenAI-compatible)
-    7860   # Stable Diffusion WebUI
+    8000   # Speaches TTS/STT API
   ];
 
   # GPU permissions setup service
