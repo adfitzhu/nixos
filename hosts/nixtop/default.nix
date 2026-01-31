@@ -47,7 +47,6 @@
   environment.systemPackages = with pkgs; [ 
     unstable.orca-slicer
     pkgs.clonehero
-    beeper
      ];
 
   services.flatpak.packages = [
