@@ -115,12 +115,15 @@
           UVICORN_PORT = "8000";
           # Connect to local Ollama for voice chat mode
           CHAT_COMPLETION_BASE_URL = "http://127.0.0.1:11434/v1";
-          # Model settings
-          STT_MODEL_TTL = "300";  # Unload after 5 min idle
-          TTS_MODEL_TTL = "300";
+          # Model settings - keep models loaded to avoid cold start delays
+          STT_MODEL_TTL = "-1";  # Never unload STT model
+          TTS_MODEL_TTL = "-1";  # Never unload TTS model
           # Enable VAD for better transcription
           _UNSTABLE_VAD_FILTER = "true";
           LOG_LEVEL = "info";
+          # Preload Kokoro TTS and Whisper STT models
+          PRELOAD_MODELS = ''["speaches-ai/Kokoro-82M-v1.0-ONNX", "Systran/faster-whisper-base.en", "Systran/faster-whisper-small.en"]'';
+        };
         };
       };
     };
