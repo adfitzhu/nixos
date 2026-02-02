@@ -63,6 +63,10 @@
           ENABLE_MODEL_FILTER = "false";
           # Disable authentication (for home/local use only)
           WEBUI_AUTH = "false";
+          # Web search via SearXNG
+          ENABLE_RAG_WEB_SEARCH = "true";
+          RAG_WEB_SEARCH_ENGINE = "searxng";
+          SEARXNG_QUERY_URL = "http://127.0.0.1:8080/search?q=<query>&format=json";
           # Audio: Use Speaches for TTS (OpenAI-compatible)
           AUDIO_TTS_ENGINE = "openai";
           AUDIO_TTS_OPENAI_API_BASE_URL = "http://127.0.0.1:8000/v1";
@@ -124,6 +128,21 @@
           # Preload Kokoro TTS and Whisper STT models
           PRELOAD_MODELS = ''["speaches-ai/Kokoro-82M-v1.0-ONNX", "Systran/faster-whisper-base.en", "Systran/faster-whisper-small.en"]'';
         };
+      };
+
+      # SearXNG - Self-hosted meta-search engine for web search
+      # Access at: http://localhost:8080
+      searxng = {
+        image = "searxng/searxng:latest";
+        autoStart = true;
+        volumes = [
+          "/var/lib/searxng/settings.yml:/etc/searxng/settings.yml:ro"
+        ];
+        extraOptions = [
+          "--network=host"
+        ];
+        environment = {
+          SEARXNG_BASE_URL = "http://localhost:8080";
         };
       };
     };
@@ -576,6 +595,7 @@ EOF
     3000   # Open WebUI
     4000   # LiteLLM (OpenAI-compatible)
     8000   # Speaches TTS/STT API
+    8080   # SearXNG web search
   ];
 
   # GPU permissions setup service
