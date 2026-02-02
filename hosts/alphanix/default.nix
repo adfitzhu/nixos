@@ -1,9 +1,5 @@
 { config, pkgs, lib, unstable, ... }:
 
-let
-  # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
-  composeFile = ./compose/docker-compose.yml;
-in
 {
   # Host-specific settings for alphanix
 
@@ -165,33 +161,190 @@ in
     };
   };
 
-  # Docker Compose service for all containers
-  systemd.services.docker-compose-stack = {
-    description = "Docker Compose application stack";
-    after = [ "docker.service" "network-online.target" ];
-    wants = [ "network-online.target" ];
-    requires = [ "docker.service" ];
-    wantedBy = [ "multi-user.target" ];
-    restartTriggers = [ composeFile ];
-    path = [ pkgs.docker pkgs.coreutils pkgs.bash ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      EnvironmentFile = "/vol/immich/immich.env";
+  # OCI Containers (Plex, Immich stack, etc.)
+  virtualisation.oci-containers = {
+    backend = "docker";
+    containers = {
+      # Plex Media Server
+      plex = {
+        image = "plexinc/pms-docker:latest";
+        autoStart = true;
+        environment = {
+          TZ = "America/Los_Angeles";
+          PLEX_CLAIM = "<claimToken>";
+        };
+        volumes = [
+          "/vol/plex/config:/config"
+          "/vol/plex/transcode:/transcode"
+          "/archive/cloud/Entertainment:/data"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--device=/dev/dri:/dev/dri"
+        ];
+      };
+
+      # Immich Server
+      immich-server = {
+        image = "ghcr.io/immich-app/immich-server:release";
+        autoStart = true;
+        dependsOn = [ "immich-redis" "immich-postgres" ];
+        environment = {
+          TZ = "America/Los_Angeles";
+          # DB_HOSTNAME/REDIS_HOSTNAME use 127.0.0.1 since we're on host network
+          DB_HOSTNAME = "127.0.0.1";
+          DB_PORT = "5432";
+          REDIS_HOSTNAME = "127.0.0.1";
+          REDIS_PORT = "6379";
+        };
+        volumes = [
+          "/cloud/Photos&Videos/Immich:/data"
+          "/etc/localtime:/etc/localtime:ro"
+          "/cloud/Photos&Videos:/external-storage"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--device=/dev/dri:/dev/dri"
+          "--env-file=/vol/immich/immich.env"
+        ];
+      };
+
+      # Immich Machine Learning with OpenVINO for Intel Arc
+      immich-machine-learning = {
+        image = "ghcr.io/immich-app/immich-machine-learning:release-openvino";
+        autoStart = true;
+        environment = {
+          # OpenVINO/Intel Arc optimizations
+          MACHINE_LEARNING_CLIP_MODEL_TEXTUAL = "ViT-B-16-SigLIP2__webli";
+          MACHINE_LEARNING_CLIP_MODEL_VISUAL = "ViT-B-16-SigLIP2__webli";
+          MACHINE_LEARNING_MODEL_TTL = "600";
+          MACHINE_LEARNING_REQUEST_THREADS = "4";
+          MACHINE_LEARNING_MODEL_INTER_OP_THREADS = "2";
+          MACHINE_LEARNING_MODEL_INTRA_OP_THREADS = "4";
+          MACHINE_LEARNING_PRELOAD__CLIP__VISUAL = "ViT-B-16-SigLIP2__webli";
+          MACHINE_LEARNING_PRELOAD__CLIP__TEXTUAL = "ViT-B-16-SigLIP2__webli";
+        };
+        volumes = [
+          "immich-model-cache:/cache"
+          "/dev/bus/usb:/dev/bus/usb"
+          "/cloud/Photos&Videos:/external-storage:ro"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--device=/dev/dri:/dev/dri"
+          "--device-cgroup-rule=c 189:* rmw"
+        ];
+      };
+
+      # Immich Redis
+      immich-redis = {
+        image = "docker.io/valkey/valkey:8-bookworm";
+        autoStart = true;
+        extraOptions = [
+          "--network=host"
+        ];
+      };
+
+      # Immich PostgreSQL
+      immich-postgres = {
+        image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0";
+        autoStart = true;
+        environment = {
+          # Non-sensitive settings inline, password from env file
+          POSTGRES_INITDB_ARGS = "--data-checksums";
+        };
+        volumes = [
+          "/vol/immich/database:/var/lib/postgresql/data"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--shm-size=128mb"
+          "--env-file=/vol/immich/immich.env"
+        ];
+      };
+
+      # Paperless-ngx - Document management system
+      # Web UI: http://localhost:8000
+      paperless-redis = {
+        image = "docker.io/valkey/valkey:8-bookworm";
+        autoStart = true;
+        extraOptions = [
+          "--network=host"
+        ];
+        cmd = [ "valkey-server" "--port" "6380" ];  # Different port from Immich redis
+      };
+
+      paperless-postgres = {
+        image = "docker.io/postgres:16";
+        autoStart = true;
+        environment = {
+          POSTGRES_DB = "paperless";
+          POSTGRES_USER = "paperless";
+        };
+        volumes = [
+          "/vol/paperless/database:/var/lib/postgresql/data"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--env-file=/vol/paperless/paperless.env"  # Contains POSTGRES_PASSWORD
+        ];
+        cmd = [ "-c" "port=5433" ];  # Different port from Immich postgres
+      };
+
+      paperless = {
+        image = "ghcr.io/paperless-ngx/paperless-ngx:latest";
+        autoStart = true;
+        dependsOn = [ "paperless-redis" "paperless-postgres" ];
+        environment = {
+          PAPERLESS_REDIS = "redis://127.0.0.1:6380";
+          PAPERLESS_DBENGINE = "postgresql";
+          PAPERLESS_DBHOST = "127.0.0.1";
+          PAPERLESS_DBPORT = "5433";
+          PAPERLESS_DBNAME = "paperless";
+          PAPERLESS_DBUSER = "paperless";
+          # PAPERLESS_DBPASS from env file
+          PAPERLESS_TIME_ZONE = "America/Los_Angeles";
+          PAPERLESS_OCR_LANGUAGE = "eng";
+          PAPERLESS_URL = "http://alphanix:8010";
+          PAPERLESS_PORT = "8010";  # Run on port 8010 directly
+          USERMAP_UID = "1000";
+          USERMAP_GID = "100";
+        };
+        volumes = [
+          "/vol/paperless/data:/usr/src/paperless/data"
+          "/vol/paperless/media:/usr/src/paperless/media"
+          "/vol/paperless/export:/usr/src/paperless/export"
+          "/vol/paperless/consume:/usr/src/paperless/consume"
+        ];
+        extraOptions = [
+          "--network=host"
+          "--env-file=/vol/paperless/paperless.env"  # Contains PAPERLESS_DBPASS, PAPERLESS_SECRET_KEY
+        ];
+      };
+
+      # VERT - File converter web UI
+      # Web UI: http://localhost:3001
+      vert = {
+        image = "ghcr.io/vert-sh/vert:latest";
+        autoStart = true;
+        dependsOn = [ "vertd" ];
+        ports = [ "3001:80" ];
+      };
+
+      # vertd - VERT conversion daemon with Intel Arc GPU acceleration
+      # API: http://localhost:24153
+      vertd = {
+        image = "ghcr.io/vert-sh/vertd:latest";
+        autoStart = true;
+        environment = {
+          VERTD_FORCE_GPU = "intel";  # Force Intel Arc GPU
+        };
+        ports = [ "24153:24153" ];
+        extraOptions = [
+          "--device=/dev/dri:/dev/dri"
+        ];
+      };
     };
-    script = ''
-      set -euo pipefail
-      echo "[compose-stack] Bringing application stack up" >&2
-      # Change to the compose directory so relative paths work
-      cd $(dirname ${composeFile})
-      docker compose -f ${composeFile} up -d --remove-orphans
-    '';
-    preStop = ''
-      set -euo pipefail
-      echo "[compose-stack] Stopping application stack" >&2
-      cd $(dirname ${composeFile})
-      docker compose -f ${composeFile} down
-    '';
   };
 
   # Syncthing system service
@@ -322,6 +475,9 @@ in
       8324           # Plex for Roku via Plex Companion
       32469          # Plex DLNA Server
       2283           # Immich web interface
+      8010           # Paperless-ngx web interface
+      3001           # VERT web interface
+      24153          # vertd API
     ];
     allowedUDPPorts = [ 
       
@@ -463,6 +619,13 @@ in
     "d /vol/immich 0755 root root - -"
     "d /vol/immich/data 0755 root root - -"
     "d /vol/immich/db 0755 root root - -"
+    # Paperless directories
+    "d /vol/paperless 0755 root root - -"
+    "d /vol/paperless/data 0755 root root - -"
+    "d /vol/paperless/database 0755 root root - -"
+    "d /vol/paperless/media 0755 root root - -"
+    "d /vol/paperless/export 0755 root root - -"
+    "d /vol/paperless/consume 0777 root root - -"  # World-writable for easy document dropping
     # Backup mount point
     "d /mnt/backup-hdd 0755 root root - -"
     # Btrbk snapshots directories
@@ -484,6 +647,68 @@ in
     timerConfig = {
       OnCalendar = "weekly";
       Persistent = true;
+    };
+  };
+
+  # Docker image update service - dynamically discovers and updates all containers
+  systemd.services.docker-image-update = {
+    description = "Pull latest Docker images and restart containers";
+    after = [ "docker.service" "network-online.target" ];
+    wants = [ "network-online.target" ];
+    requires = [ "docker.service" ];
+    serviceConfig.Type = "oneshot";
+    path = [ pkgs.docker pkgs.coreutils pkgs.gnugrep ];
+    script = ''
+      set -euo pipefail
+      
+      echo "=== Docker Image Update ==="
+      echo ""
+      
+      # Get all images currently in use by running containers
+      echo "Discovering images from running containers..."
+      IMAGES=$(docker ps --format '{{.Image}}' | sort -u)
+      
+      if [ -z "$IMAGES" ]; then
+        echo "No running containers found."
+        exit 0
+      fi
+      
+      echo "Found images:"
+      echo "$IMAGES" | while read img; do echo "  - $img"; done
+      echo ""
+      
+      # Pull each image
+      echo "Pulling latest versions..."
+      UPDATED=""
+      for IMAGE in $IMAGES; do
+        echo "Pulling: $IMAGE"
+        # Capture the pull output to detect if image was updated
+        if docker pull "$IMAGE" 2>&1 | grep -q "Downloaded newer image\|Pull complete"; then
+          UPDATED="$UPDATED $IMAGE"
+        fi
+      done
+      echo ""
+      
+      # Find and restart systemd services for docker-* containers
+      echo "Restarting container services..."
+      SERVICES=$(systemctl list-units --type=service --state=running --no-legend | grep '^docker-' | awk '{print $1}')
+      
+      for SERVICE in $SERVICES; do
+        echo "Restarting: $SERVICE"
+        systemctl restart "$SERVICE" || echo "  Warning: Failed to restart $SERVICE"
+      done
+      
+      echo ""
+      echo "=== Docker image update complete! ==="
+    '';
+  };
+  systemd.timers.docker-image-update = {
+    description = "Pull latest Docker images weekly";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      RandomizedDelaySec = "1h";  # Spread load, don't run exactly with auto-upgrade
     };
   };
 }
