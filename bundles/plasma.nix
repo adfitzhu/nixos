@@ -28,6 +28,8 @@
     QT_QPA_PLATFORM = "wayland;xcb";  # Fallback to X11 if Wayland fails
     # Prevent kwin crashes on display changes
     KWIN_COMPOSE = "O2";
+    # Enable Intel GPU monitoring for Plasma System Monitor
+    ZES_ENABLE_SYSMAN = "1";
   };
 
   # Hardware-specific fixes for display hotplug
