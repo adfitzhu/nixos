@@ -170,7 +170,7 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-        tls internal
+          # tls internal
       '') //
       (mkVHost "vert.lan" ''
         encode zstd gzip
@@ -179,7 +179,7 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-        tls internal
+          # tls internal
       '') //
       (mkVHost "openwebui.lan" ''
         encode zstd gzip
@@ -188,7 +188,7 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-        tls internal
+          # tls internal
       '') //
       (mkVHost "searxng.lan" ''
         encode zstd gzip
@@ -197,7 +197,7 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-        tls internal
+          # tls internal
       '');
   };
 
