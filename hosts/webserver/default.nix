@@ -163,7 +163,7 @@ in
           header_up X-Forwarded-For {remote}
         }
       '') //
-      (mkVHost "paperless.local" ''
+      (mkVHost "paperless.lan" ''
         encode zstd gzip
         reverse_proxy 192.168.1.20:8010 {
           header_up Host {host}
@@ -171,7 +171,7 @@ in
           header_up X-Forwarded-For {remote}
         }
       '') //
-      (mkVHost "vert.local" ''
+      (mkVHost "vert.lan" ''
         encode zstd gzip
         reverse_proxy 192.168.1.20:3001 {
           header_up Host {host}
@@ -179,7 +179,7 @@ in
           header_up X-Forwarded-For {remote}
         }
       '') //
-      (mkVHost "openwebui.local" ''
+      (mkVHost "openwebui.lan" ''
         encode zstd gzip
         reverse_proxy 192.168.1.20:3000 {
           header_up Host {host}
@@ -187,7 +187,7 @@ in
           header_up X-Forwarded-For {remote}
         }
       '') //
-      (mkVHost "searxng.local" ''
+      (mkVHost "searxng.lan" ''
         encode zstd gzip
         reverse_proxy 192.168.1.20:8080 {
           header_up Host {host}
