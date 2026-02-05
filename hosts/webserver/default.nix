@@ -162,6 +162,38 @@ in
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
+      '') //
+      (mkVHost "paperless.local" ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:8010 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost "vert.local" ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:3001 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost "openwebui.local" ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:3000 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost "searxng.local" ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:8080 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
       '');
   };
 
