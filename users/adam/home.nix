@@ -6,6 +6,7 @@ let
   syncthingId = secrets.syncthingServerId or "N/A";
 in
 {
+  nixpkgs.config.allowUnfree = true;
   home.stateVersion = "25.05";
 
  # services.nextcloud-client.enable = true;
@@ -42,4 +43,16 @@ in
       };
     };
   };
+  programs.vscode = {
+    enable = true;
+    package = pkgs.vscode.fhs;
+    profiles = {
+      default = {
+        extensions = [
+          pkgs.vscode-extensions.continue.continue
+        ];
+      };
+    };
+  };
 }
+
