@@ -254,6 +254,9 @@ in
           extraConfig = ''
             auto_https off
             encode zstd gzip
+            handle_path /lander* {
+              rewrite * /
+            }
             root * ${portalSite}
             header Cache-Control "public, max-age=300"
             file_server
@@ -263,6 +266,9 @@ in
     extraConfig = ''
       :${toString portalPort} {
         encode zstd gzip
+        handle_path /lander* {
+          rewrite * /
+        }
         root * ${portalSite}
         header Cache-Control "public, max-age=300"
         file_server
