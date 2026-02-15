@@ -250,8 +250,9 @@ in
           # tls internal
       '') //
       {
-        "house.tools" = {
+        "http://house.tools" = {
           extraConfig = ''
+            auto_https off
             encode zstd gzip
             root * ${portalSite}
             header Cache-Control "public, max-age=300"
