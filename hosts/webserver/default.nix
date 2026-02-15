@@ -252,7 +252,6 @@ in
       {
         "http://services.fitz" = {
           extraConfig = ''
-            auto_https off
             encode zstd gzip
             handle_path /lander* {
               rewrite * /
