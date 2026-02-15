@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>house.tools · service board</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <span class="hero-badge">House.Tools · LAN Portal</span>
+      <h1>One touch into every homelab surface</h1>
+      <p>
+        Quick-launch panel for the services that live on <strong>webserver (192.168.1.10)</strong> and
+        <strong>alphanix (192.168.1.20)</strong>, including the LocalAI stack. Each tile jumps straight to the
+        correct IP and port so you can skip port hunting and just get work done.
+      </p>
+    </header>
+
+    <main>
+      <section>
+        <div class="section-heading">
+          <h2>Edge · webserver · 192.168.1.10</h2>
+          <span>Front-door services running on the perimeter host</span>
+        </div>
+        <div class="service-grid">
+          <a class="service-card" href="@nextcloud_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/nextcloud.svg" alt="Nextcloud icon" />
+            <div class="card-body">
+              <h3>Nextcloud</h3>
+              <p>Files, calendar, contacts, and shared storage.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                via Caddy → :11000
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@nextcloud_admin_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/nextcloud.svg" alt="Nextcloud admin icon" />
+            <div class="card-body">
+              <h3>Nextcloud AIO Panel</h3>
+              <p>Lifecycle dashboard for the All-In-One stack.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.10:8080
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@tyac_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/wordpress.svg" alt="WordPress icon" />
+            <div class="card-body">
+              <h3>The Young Artists Club</h3>
+              <p>WordPress frontend + admin stack.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.10:8002
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@allergy_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/wordpress.svg" alt="WordPress icon" />
+            <div class="card-body">
+              <h3>Allergy Relief Site</h3>
+              <p>Standalone WordPress instance.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.10:8003
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@adguard_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/adguard.svg" alt="AdGuard icon" />
+            <div class="card-body">
+              <h3>AdGuard Home</h3>
+              <p>DNS sinkhole & network filter UI.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.10:3000
+              </span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <h2>Core · alphanix · 192.168.1.20</h2>
+          <span>Media, documents, and automation workloads</span>
+        </div>
+        <div class="service-grid">
+          <a class="service-card" href="@immich_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/immich.svg" alt="Immich icon" />
+            <div class="card-body">
+              <h3>Immich</h3>
+              <p>Family photo hub with GPU acceleration.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:2283
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@paperless_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/paperless.svg" alt="Paperless icon" />
+            <div class="card-body">
+              <h3>Paperless-ngx</h3>
+              <p>Inbox, OCR, and searchable archive.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:8010
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@plex_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/plex.svg" alt="Plex icon" />
+            <div class="card-body">
+              <h3>Plex Media Server</h3>
+              <p>Streams media library to every screen.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:32400/web
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@syncthing_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/syncthing.svg" alt="Syncthing icon" />
+            <div class="card-body">
+              <h3>Syncthing</h3>
+              <p>Peer-to-peer sync controller.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:8384
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@vert_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/vert.svg" alt="VERT icon" />
+            <div class="card-body">
+              <h3>VERT</h3>
+              <p>GPU-powered file conversion UI.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:3001
+              </span>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <h2>Local AI Stack · imported via localAI bundle</h2>
+          <span>Conversational UI, APIs, TTS/STT, and search helpers</span>
+        </div>
+        <div class="service-grid">
+          <a class="service-card" href="@openwebui_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/openwebui.svg" alt="Open WebUI icon" />
+            <div class="card-body">
+              <h3>Open WebUI</h3>
+              <p>Chat interface backed by IPEX-Ollama.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:3000
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@litellm_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/litellm.svg" alt="LiteLLM icon" />
+            <div class="card-body">
+              <h3>LiteLLM Proxy</h3>
+              <p>OpenAI-compatible endpoint aggregator.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:4000/v1
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@speaches_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/speaches.svg" alt="Speaches icon" />
+            <div class="card-body">
+              <h3>Speaches</h3>
+              <p>Unified TTS + STT gateway.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:8000/v1
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@searxng_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/searxng.svg" alt="SearXNG icon" />
+            <div class="card-body">
+              <h3>SearXNG</h3>
+              <p>Meta-search engine feeding RAG.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:8080
+              </span>
+            </div>
+          </a>
+
+          <a class="service-card" href="@ollama_url@" target="_blank" rel="noopener">
+            <img src="assets/icons/ollama.svg" alt="Ollama icon" />
+            <div class="card-body">
+              <h3>IPEX Ollama API</h3>
+              <p>Direct model endpoint for power users.</p>
+              <span class="service-meta">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
+                192.168.1.20:11434
+              </span>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <p class="footer-note">
+      Served from webserver on port @portal_port@. Point <strong>house.tools</strong> at this host when you're ready.
+    </p>
+  </div>
+</body>
+</html>
