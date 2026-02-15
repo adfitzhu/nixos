@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>house.tools · service board</title>
+  <title>services.fitz · service board</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="hero">
-      <span class="hero-badge">House.Tools · LAN Portal</span>
+      <span class="hero-badge">Services.Fitz · LAN Portal</span>
       <h1>One touch into every homelab surface</h1>
       <p>
         Quick-launch panel for the services that live on <strong>webserver (192.168.1.10)</strong> and
@@ -225,7 +225,7 @@
     </main>
 
     <p class="footer-note">
-      Served from webserver on port @portal_port@. Point <strong>house.tools</strong> at this host when you're ready.
+      Served from webserver on port @portal_port@. Point <strong>services.fitz</strong> at this host when you're ready.
     </p>
   </div>
 </body>

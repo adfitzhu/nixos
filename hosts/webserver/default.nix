@@ -250,7 +250,7 @@ in
           # tls internal
       '') //
       {
-        "http://house.tools" = {
+        "http://services.fitz" = {
           extraConfig = ''
             auto_https off
             encode zstd gzip
