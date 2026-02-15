@@ -101,7 +101,7 @@
               <p>Unified TTS + STT gateway.</p>
               <span class="service-meta">
                 <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 8h12M8 2l4 4-4 4-4-4z"/></svg>
-                Port 8000 /v1
+                Port 8000
               </span>
             </div>
           </a>

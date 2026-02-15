@@ -39,8 +39,8 @@ let
   syncthingUrl = "http://${alphanixIp}:8384";
   vertUrl = "http://${alphanixIp}:3001";
   openWebuiUrl = "http://${alphanixIp}:3000";
-  litellmUrl = "http://${alphanixIp}:4000/v1";
-  speachesUrl = "http://${alphanixIp}:8000/v1";
+  litellmUrl = "http://${alphanixIp}:4000";
+  speachesUrl = "http://${alphanixIp}:8000";
   searxngUrl = "http://${alphanixIp}:8080";
   ollamaUrl = "http://${alphanixIp}:11434";
 
