@@ -62,7 +62,7 @@
           ENABLE_OPENAI_API = "true";
           ENABLE_MODEL_FILTER = "false";
           # Disable authentication (for home/local use only)
-          WEBUI_AUTH = "false";
+          #WEBUI_AUTH = "false";
           # Web search via SearXNG
           ENABLE_RAG_WEB_SEARCH = "true";
           RAG_WEB_SEARCH_ENGINE = "searxng";
