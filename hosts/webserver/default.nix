@@ -17,6 +17,7 @@ let
   domainMC2 = secrets.mc2 or "";
   domainMC3 = secrets.mc3 or "";
   domainMC4 = secrets.mc4 or "";
+  domainMC5 = secrets.mc5 or "";
 
   # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
   composeFile = ./compose/docker-compose.yml;
@@ -208,6 +209,14 @@ in
       (mkVHost domainMC4 ''
         encode zstd gzip
         reverse_proxy 192.168.1.20:25568 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+        (mkVHost domainMC5 ''
+        encode zstd gzip
+        reverse_proxy 192.168.1.20:25569 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
