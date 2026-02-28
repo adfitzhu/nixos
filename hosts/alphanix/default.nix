@@ -344,6 +344,33 @@
           "--device=/dev/dri:/dev/dri"
         ];
       };
+
+      # Crafty Controller - Minecraft server management panel
+      # Web UI: https://localhost:8443
+      # Manages multiple Minecraft servers with GUI
+      crafty = {
+        image = "registry.gitlab.com/crafty-controller/crafty-4:latest";
+        autoStart = true;
+        environment = {
+          TZ = "America/Los_Angeles";
+        };
+        volumes = [
+          "/vol/crafty/backups:/crafty/backups"
+          "/vol/crafty/logs:/crafty/logs"
+          "/vol/crafty/servers:/crafty/servers"
+          "/vol/crafty/config:/crafty/app/config"
+          "/vol/crafty/import:/crafty/import"
+        ];
+        ports = [
+          "8443:8443"   # Crafty web UI (HTTPS)
+          "8123:8123"   # Crafty web UI (HTTP)
+          "25565:25565" # Minecraft server 1
+          "25566:25566" # Minecraft server 2
+          "25567:25567" # Minecraft server 3
+          "25568:25568" # Minecraft server 4
+          "25569:25569" # Minecraft server 5
+        ];
+      };
     };
   };
 
@@ -478,6 +505,8 @@
       8010           # Paperless-ngx web interface
       3001           # VERT web interface
       24153          # vertd API
+      25565 25566 25567 25568 25569  # Minecraft servers (via Crafty)
+      8443 8123                        # Crafty web UI
     ];
     allowedUDPPorts = [ 
       

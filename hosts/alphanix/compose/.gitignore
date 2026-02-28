@@ -1,3 +1,0 @@
-# Ignore any env files with secrets
-*.env
-
