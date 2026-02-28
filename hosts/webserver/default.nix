@@ -24,56 +24,6 @@ let
 
   # Helper to build a virtualHost attr only if domain provided
   mkVHost = domain: cfg: lib.optionalAttrs (domain != "") { "${domain}" = { extraConfig = cfg; }; };
-
-  webserverIp = "192.168.1.10";
-  alphanixIp = "192.168.1.20";
-  portalPort = 12000;
-
-  nextcloudUrl = if domainNextcloud != "" then "https://${domainNextcloud}" else "http://${webserverIp}:11000";
-  nextcloudAdminUrl = "http://${webserverIp}:8080";
-  tyacUrl = "http://${webserverIp}:8002";
-  allergyUrl = "http://${webserverIp}:8003";
-  adguardUrl = "http://${webserverIp}:3000";
-  immichUrl = "http://${alphanixIp}:2283";
-  paperlessUrl = "http://${alphanixIp}:8010";
-  plexUrl = "http://${alphanixIp}:32400/web";
-  syncthingUrl = "http://${alphanixIp}:8384";
-  vertUrl = "http://${alphanixIp}:3001";
-  openWebuiUrl = "http://${alphanixIp}:3000";
-  litellmUrl = "http://${alphanixIp}:4000";
-  speachesUrl = "http://${alphanixIp}:8000";
-  searxngUrl = "http://${alphanixIp}:8080";
-  ollamaUrl = "http://${alphanixIp}:11434";
-
-  houseToolsDir = ./house-tools;
-  portalVars = {
-    "@nextcloud_url@" = nextcloudUrl;
-    "@nextcloud_admin_url@" = nextcloudAdminUrl;
-    "@tyac_url@" = tyacUrl;
-    "@allergy_url@" = allergyUrl;
-    "@adguard_url@" = adguardUrl;
-    "@immich_url@" = immichUrl;
-    "@paperless_url@" = paperlessUrl;
-    "@plex_url@" = plexUrl;
-    "@syncthing_url@" = syncthingUrl;
-    "@vert_url@" = vertUrl;
-    "@openwebui_url@" = openWebuiUrl;
-    "@litellm_url@" = litellmUrl;
-    "@speaches_url@" = speachesUrl;
-    "@searxng_url@" = searxngUrl;
-    "@ollama_url@" = ollamaUrl;
-    "@portal_port@" = builtins.toString portalPort;
-  };
-  portalTemplate = pkgs.writeText "house-tools.html"
-    (builtins.replaceStrings (builtins.attrNames portalVars) (builtins.attrValues portalVars)
-      (builtins.readFile (houseToolsDir + "/index.html.in")));
-  portalSite = pkgs.runCommand "house-tools-static" { } ''
-    set -eu
-    mkdir -p $out
-    cp ${portalTemplate} $out/index.html
-    cp ${houseToolsDir + "/styles.css"} $out/styles.css
-    cp -R ${houseToolsDir + "/assets"} $out/assets
-  '';
 in
 {
   imports = [
@@ -105,7 +55,7 @@ in
     nameservers = [ "8.8.8.8" "192.168.1.1" ];
     
     # Firewall configuration
-    firewall.allowedTCPPorts = [ 80 443 3001 8080 portalPort ];
+    firewall.allowedTCPPorts = [ 80 443 3001 8080 ];
   
     firewall.allowedUDPPorts = [53];
   
@@ -257,31 +207,7 @@ in
           header_up X-Forwarded-For {remote}
         }
           # tls internal
-      '') //
-      {
-        "http://services.fitz" = {
-          extraConfig = ''
-            encode zstd gzip
-            handle_path /lander* {
-              rewrite * /
-            }
-            root * ${portalSite}
-            header Cache-Control "public, max-age=300"
-            file_server
-          '';
-        };
-      };
-    extraConfig = ''
-      :${toString portalPort} {
-        encode zstd gzip
-        handle_path /lander* {
-          rewrite * /
-        }
-        root * ${portalSite}
-        header Cache-Control "public, max-age=300"
-        file_server
-      }
-    '';
+      '');
   };
 
   # Create /vol as a proper btrfs subvolume on root filesystem
