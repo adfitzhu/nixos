@@ -65,7 +65,7 @@
 
   # Gaming firewall ports
   networking.firewall = {
-    allowedTCPPorts = [ 29900 ];  # BF2 GameSpy services
+    allowedTCPPorts = [ 29900, 16567 ];  # BF2 GameSpy services
     allowedUDPPorts = [ 16567 ];  # BF2 gameplay
   };
 }

@@ -25,7 +25,7 @@
     flatpak
     git
     vlc
-    
+    ffmpeg
     unzip
     zip
     p7zip

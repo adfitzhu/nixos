@@ -145,6 +145,27 @@
           SEARXNG_BASE_URL = "http://localhost:8080";
         };
       };
+
+      # Spleeter - Audio source separation (music/vocals)
+      # Access via command line or wrapper script
+      spleeter = {
+        image = "researchdeezer/spleeter:latest";
+        autoStart = false;  # Start manually with: systemctl start docker-spleeter
+        volumes = [
+          "/:/hostfs:ro"
+          "/cloud/Entertainment/Music/Production/Split:/output"
+          "spleeter-models:/model"
+        ];
+        environment = {
+          MODEL_PATH = "/model";
+        };
+        extraOptions = [
+          "--network=host"
+          "-e" "PYTHONUNBUFFERED=1"
+          "--entrypoint" "sh"
+        ];
+        cmd = [ "-c" "sleep infinity" ];
+      };
     };
   };
 
@@ -586,6 +607,133 @@ EOF
       echo "🔄 Restarting Speaches..."
       sudo systemctl restart docker-speaches
       echo "✅ Done! Run 'ai-voice-status' to check."
+    '')
+
+    # Spleeter container management info
+    (writeShellScriptBin "spleeter-info" ''
+      #!/usr/bin/env bash
+      echo "🎵 Spleeter Container Management"
+      echo "================================="
+      echo ""
+      echo "Start:    systemctl start docker-spleeter"
+      echo "Stop:     systemctl stop docker-spleeter"
+      echo "Status:   systemctl status docker-spleeter"
+      echo "Logs:     journalctl -u docker-spleeter -f"
+      echo ""
+      echo "Current status:"
+      systemctl is-active docker-spleeter && echo "  ✅ Running" || echo "  ❌ Not running"
+    '')
+
+    # Spleeter - Audio source separation (music/vocals)
+    (writeShellScriptBin "spleeter" ''
+      #!/usr/bin/env bash
+      
+      # Show help if no args
+      if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        echo "🎵 Spleeter - Audio Source Separation"
+        echo "======================================"
+        echo ""
+        echo "Separate audio into stems (vocals, drums, bass, etc.)"
+        echo ""
+        echo "Setup (first time only):"
+        echo "  systemctl start docker-spleeter"
+        echo ""
+        echo "Usage:"
+        echo "  spleeter <audio_file> [OPTIONS]"
+        echo ""
+        echo "Examples:"
+        echo "  # 4 stems (vocals, drums, bass, other) - default"
+        echo "  spleeter ~/Music/song.mp3"
+        echo "  spleeter /arbitrary/path/to/song.mp3"
+        echo ""
+        echo "  # 5 stems (vocals, drums, bass, piano, other)"
+        echo "  spleeter ~/Music/song.mp3 -piano"
+        echo ""
+        echo "Management:"
+        echo "  spleeter-info            # Show container status and commands"
+        echo ""
+        echo "Output:"
+        echo "  /cloud/Entertainment/Music/Production/Split/song/"
+        echo "    ├── vocals.wav"
+        echo "    ├── drums.wav"
+        echo "    ├── bass.wav"
+        echo "    └── other.wav"
+        echo ""
+        exit 0
+      fi
+      
+      # Check if container is running
+      if ! docker ps --format '{{.Names}}' | grep -q "^spleeter$"; then
+        echo "❌ Spleeter container not running"
+        echo ""
+        echo "Start it with: systemctl start docker-spleeter"
+        exit 1
+      fi
+      
+      AUDIO_FILE="$1"
+      USE_PIANO=false
+      
+      # Check for -piano flag
+      if [ "$2" = "-piano" ]; then
+        USE_PIANO=true
+        STEM_MODEL="spleeter:5stems"
+      else
+        STEM_MODEL="spleeter:4stems"
+      fi
+      
+      if [ -z "$AUDIO_FILE" ]; then
+        echo "❌ No audio file specified"
+        exit 1
+      fi
+      
+      # Resolve absolute path
+      if [[ "$AUDIO_FILE" == ~* ]]; then
+        AUDIO_FILE="''${AUDIO_FILE/#\~/$HOME}"
+      fi
+      
+      if [ ! -f "$AUDIO_FILE" ]; then
+        echo "❌ Audio file not found: $AUDIO_FILE"
+        exit 1
+      fi
+      
+      # Get absolute path and filename info
+      AUDIO_FILE=$(cd "$(dirname "$AUDIO_FILE")" && pwd)/$(basename "$AUDIO_FILE")
+      FILENAME=$(basename "$AUDIO_FILE")
+      FILENAME_NOEXT="''${FILENAME%.*}"
+      
+      # Map the input file path: /actual/path/file.mp3 -> /hostfs/actual/path/file.mp3
+      CONTAINER_AUDIO_PATH="/hostfs$AUDIO_FILE"
+      
+      # Set up output path
+      OUTPUT_BASE="/home/adam/spleeter/output"
+      FINAL_OUTPUT_DIR="$OUTPUT_BASE/''${FILENAME_NOEXT}"
+      
+      echo "🎵 Spleeting: $FILENAME"
+      echo "Mode: $([ "$USE_PIANO" = true ] && echo "5 stems (with piano)" || echo "4 stems")"
+      echo "Output: $FINAL_OUTPUT_DIR"
+      echo ""
+      
+      # Clean up existing output directory (let container handle it to avoid permission issues)
+      docker exec spleeter sh -c "rm -rf /output/''${FILENAME_NOEXT}"
+      
+      # Run spleeter in the persistent container via docker exec
+      docker exec spleeter \
+        spleeter separate \
+        -p "$STEM_MODEL" \
+        -i "$CONTAINER_AUDIO_PATH" \
+        -o /output
+      
+      if [ $? -ne 0 ]; then
+        echo "❌ Separation failed"
+        exit 1
+      fi
+      
+      echo ""
+      echo "✅ Separation complete!"
+      echo "📁 Output directory: $FINAL_OUTPUT_DIR"
+      echo ""
+      echo "📋 Files:"
+      ls -lh "$FINAL_OUTPUT_DIR" | tail -n +2 | awk '{printf "   %-15s %8s\n", $9, $5}'
     '')
   ];
 
