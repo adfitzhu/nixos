@@ -480,6 +480,12 @@
           label = "Local Sync";
           path = "/cloud/LocalSync";
         };
+
+        "friendshare" = {
+          id = "friendshare";
+          label = "Friend Share";
+          path = "/cloud/Friend Share";
+        };
       };
     };
   };
