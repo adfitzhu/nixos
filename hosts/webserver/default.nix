@@ -305,7 +305,28 @@ in
   services.adguardhome = {
     enable = true;
     openFirewall = true; # opens 53/udp+tcp and the UI port
+    settings = {
+      dhcp = {
+        enabled = true;
+        interface_name = "enp2s0";
+        local_domain_name = "lan";
+        dhcp_v4 = {
+          enabled = true;
+          gateway_ip = "192.168.1.1";  # Use router as gateway for reliability
+          subnet_mask = "255.255.255.0";
+          range_start = "192.168.1.100";
+          range_end = "192.168.1.200";
+          lease_duration = 86400;
+        };
+      };
+      dns = {
+        upstream_dns = [ "192.168.1.10" "94.140.14.15" ];  # Primary: webserver, Backup: AdGuard DNS
+      };
+    };
   };
+
+  # AdGuard Home DHCP needs elevated capabilities
+  systemd.services.adguardhome.serviceConfig.AmbientCapabilities = [ "CAP_NET_ADMIN" "CAP_NET_RAW" "CAP_NET_BIND_SERVICE" ];
 
   # Desktop services - only enabled when desktopMode = true
   services.desktopManager.plasma6.enable = desktopMode;
