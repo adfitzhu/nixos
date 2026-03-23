@@ -319,9 +319,6 @@ in
           lease_duration = 86400;
         };
       };
-      dns = {
-        upstream_dns = [ "192.168.1.10" "94.140.14.15" ];  # Primary: webserver, Backup: AdGuard DNS
-      };
     };
   };
 
