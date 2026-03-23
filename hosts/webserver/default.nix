@@ -40,24 +40,25 @@ in
 
 
   # Networking configuration
-  networking = {
-    hostName = "webserver";
-    
-    # Static IP configuration
-    useDHCP = false;
-    interfaces.enp2s0 = {
-      ipv4.addresses = [{
-        address = "192.168.1.10";
-        prefixLength = 24;
-      }];
+    settings = {
+      bind_port = 3001;
+      dhcp = {
+        enabled = true;
+        interface_name = "enp2s0";
+        local_domain_name = "lan";
+        dhcp_v4 = {
+          enabled = true;
+          gateway_ip = "192.168.1.1";  # Use router as gateway for reliability
+          subnet_mask = "255.255.255.0";
+          range_start = "192.168.1.100";
+          range_end = "192.168.1.200";
+          lease_duration = 86400;
+        };
+      };
+      dns = {
+        upstream_dns = [ "8.8.8.8" "1.1.1.1" ];
+      };
     };
-    defaultGateway = "192.168.1.1";
-    nameservers = [ "8.8.8.8" "192.168.1.1" ];
-    
-    # Firewall configuration
-    firewall.allowedTCPPorts = [ 80 443 3001 8080 ];
-  
-    firewall.allowedUDPPorts = [53];
   
   };
   
