@@ -319,9 +319,6 @@ in
           lease_duration = 86400;
         };
       };
-      dns = {
-        upstream_dns = [ "8.8.8.8" "1.1.1.1" ];
-      };
     };
   };
 
