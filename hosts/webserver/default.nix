@@ -306,19 +306,6 @@ in
     openFirewall = true; # opens 53/udp+tcp and the UI port
     settings = {
       bind_port = 3001;
-      dhcp = {
-        enabled = true;
-        interface_name = "enp2s0";
-        local_domain_name = "lan";
-        dhcp_v4 = {
-          enabled = true;
-          gateway_ip = "192.168.1.1";  # Use router as gateway for reliability
-          subnet_mask = "255.255.255.0";
-          range_start = "192.168.1.100";
-          range_end = "192.168.1.200";
-          lease_duration = 86400;
-        };
-      };
     };
   };
 
