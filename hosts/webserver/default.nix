@@ -304,9 +304,7 @@ in
   services.adguardhome = {
     enable = true;
     openFirewall = true; # opens 53/udp+tcp and the UI port
-    settings = {
-      bind_port = 3001;
-    };
+    port = 3001;
   };
 
   # AdGuard Home DHCP needs elevated capabilities
