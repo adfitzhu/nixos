@@ -277,14 +277,17 @@ in
     # Backup-related directories
     "d /mnt/backup-hdd 0755 root root -"
     "d /vol/.btrbk_snapshots 0755 root root -"
+    "d /mnt/backup-hdd/nixtop/snapshots/home 0755 root root -"
     # btrbk SSH configuration
     "d /var/lib/btrbk/.ssh 0700 btrbk btrbk -"
     "f /var/lib/btrbk/.ssh/authorized_keys 0600 btrbk btrbk -"
   ];
 
-  # SSH access for btrbk user (user automatically created by services.btrbk)
-  # Add your SSH public key here later: users.users.btrbk.openssh.authorizedKeys.keys = [ "ssh-rsa AAAA..." ];
-  #users.users.btrbk.openssh.authorizedKeys.keys = [ ];
+  # SSH access for btrbk user - public keys from hosts that push backups here
+  users.users.btrbk.openssh.authorizedKeys.keys = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCljtDu0oWM19S7JAf0Y4tD9StZnlF3bAKYuCojd8zhwLdcjbsoUhOy/ZRpz6OSeuhm1LmTb5GTflp7urVhL2ys7Gw73dBpvkmFMjyqB6uwQ356NYhCoR+LBG0f7HOXl/Iot7nM1OdDhHEhEoehXkD9yHdofcSADeQqtRc4Z6EXgvEAs/A40cp+4hJTniueqjgOtgVZXbO2PiqRmwtZ4GhdtmrBkvxAOGzoTxXOJM9AKZDhHCe7d6JGYHlbYuUVcBY3ahjYCQFoAWhaJ7Iqzvd8LPpwD3RnKOJj4I3Psv2U2+8e7I6T2Njc0gIfkFkCTIESbgWv9ujgs1Np5iPHYSVvmjAhBU/rXq2Iu1AUePP00chAtnLINolCofW9I1+Uha4evWx751tqXoOElqnYtOvo71LVtZ8xaIh03JrZ9PvR/GdOdH1Tlkc8sAcumet8Y8DbcUG82lH98fLMu9F3U4MFA9iCDYi1wBKScA9FqwyCIIL3+CH5IX0RDcTSFbhsIF/E4X+wtnZrZhe9Mu+q16kP6EztlKy16gTQMTtRUhDL5d4RkYxtZSjFavISNZIdQ2x1Gip/CHz73QkLQ1PnYMik4S4YZvid8P/A/b0+nKuy0ty2uX7zcM2Hd1XD3LgYuYKvdfcLdnE83I7iW/1QABjwIsEipxSE3TsF6cjqayGMqQ== btrbk@alphanix"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHgT9CZ1Vv33afzVVUgUnaecdZckDbT9rTlnXsyj7dHS btrbk@nixtop"
+  ];
 
   # Allow btrbk user to run btrfs commands via sudo (needed for remote operations)
   security.sudo.extraRules = [
