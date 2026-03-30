@@ -590,6 +590,9 @@
     };
     
     # Network backup to webserver (both /cloud and /vol)
+    # snapshot_create = "no" means it reuses snapshots already created by
+    # cloud-local / vol-local rather than trying to create a new one with the
+    # same timestamp, which would collide and cause a "read-only fs" error.
     "data-to-webserver" = {
       onCalendar = "weekly";
       settings = {
@@ -599,6 +602,7 @@
         target_preserve_min = "1w";
         target_preserve = "4w 6m 2y";
         incremental = "yes";
+        snapshot_create = "no";
         
         backend_remote = "btrfs-progs-sudo";
         ssh_identity = "/var/lib/btrbk/.ssh/btrbk_rsa";
