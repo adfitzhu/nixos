@@ -71,6 +71,24 @@
     onCalendar = "daily";
   };
 
+  # Ensure Flatpak runtimes + apps actually get updated daily.
+  # nix-flatpak's managed-install timer only syncs declared packages;
+  # this timer runs the real "flatpak update" to keep runtimes current.
+  systemd.services.flatpak-update = {
+    description = "Update all Flatpak apps and runtimes";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.flatpak}/bin/flatpak update --noninteractive";
+    };
+  };
+  systemd.timers.flatpak-update = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+    };
+  };
+
   services.flatpak.uninstallUnmanaged = false;
 
   # Global flatpak overrides - allows all apps access to home directory

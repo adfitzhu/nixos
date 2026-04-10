@@ -56,7 +56,7 @@
     "com.obsproject.Studio"
     "com.github.tchx84.Flatseal"
     "org.mozilla.Thunderbird"
-    "org.freecadweb.FreeCAD"
+    "org.freecad.FreeCAD"
   ];
 
   # Steam configuration
