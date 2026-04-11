@@ -45,14 +45,20 @@ in
   };
   programs.vscode = {
     enable = true;
-    package = pkgs.vscode.fhs;
+    package = pkgs.vscode;
     profiles = {
       default = {
         extensions = [
           pkgs.vscode-extensions.continue.continue
         ];
+        userSettings = {
+          # Skip GPU blacklist check and use GPU compositing immediately
+          "disable-hardware-acceleration" = false;
+          "update.mode" = "none";
+        };
       };
     };
   };
+
 }
 

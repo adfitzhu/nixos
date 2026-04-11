@@ -40,7 +40,7 @@
   fileSystems."/cloud" = {
     device = "192.168.1.20:/";
     fsType = "nfs4";
-    options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
+    options = [ "_netdev" "nofail" "soft" "timeo=5" "retrans=2" "actimeo=1" "x-systemd.automount" "x-systemd.idle-timeout=600" ];
   };
 
 
@@ -64,7 +64,10 @@
     enable = true;
     remotePlay.openFirewall = true;
     localNetworkGameTransfers.openFirewall = true;
+    # Use native runtime to avoid slow FHS container setup on every launch
+    extraCompatPackages = [ pkgs.proton-ge-bin ];
   };
+  hardware.steam-hardware.enable = true;
 
   # VirtualBox configuration
   virtualisation.virtualbox.host = {
