@@ -78,6 +78,9 @@
   boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
 
 
+  # Hibernate resume — tells the kernel where to find the hibernation image
+  boot.resumeDevice = "/dev/disk/by-uuid/cc0e76e7-cbc6-4b63-888b-07e0b3914c04";
+
   # Fingerprint reader configuration
   services.fprintd.enable = true;
   security.pam.services = {

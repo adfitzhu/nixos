@@ -50,6 +50,8 @@
     vscode
     kdePackages.yakuake
     digikam
+    pkgs.fuse
+    pkgs.appimage-run
   (import ../utils/dolphin-versions/dolphin-versions.nix { inherit pkgs; })
   unstable.tailscale
   ];
@@ -200,6 +202,8 @@
       # Hide blinking cursor on VT during splash
       "vt.global_cursor_default=0"
     ];
+    # Ensure FUSE kernel module is available on desktop hosts (for AppImage support)
+    kernelModules = [ "fuse" ];
   };
   # Keep firmware (vendor) logo resolution so BGRT looks nice
   boot.loader.systemd-boot.consoleMode = "keep";
