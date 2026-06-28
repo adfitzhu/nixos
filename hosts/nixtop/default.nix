@@ -14,12 +14,10 @@
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
   };
-  
-  services.displayManager.autoLogin = { 
-    enable = true; 
-    user = "adam"; 
-  };
-
+  #   services.displayManager.autoLogin = { 
+  #   enable = true; 
+  #   user = "adam"; 
+  # };
   # KDE Plasma 6 with display stability fixes
   services.desktopManager.plasma6.enable = true;
   
