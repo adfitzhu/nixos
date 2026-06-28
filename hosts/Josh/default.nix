@@ -87,7 +87,7 @@
           "/home" = {
             snapshot_dir = ".snapshots";
             subvolume = ".";
-            target = "ssh://192.168.1.10/mnt/backup-hdd/nixtop/snapshots/home";
+            target = "ssh://192.168.1.10/mnt/backup-hdd/Josh/snapshots/home";
           };
         };
       };
@@ -113,7 +113,7 @@
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
-  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#nixtop --no-write-lock-file --impure
+  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#Josh --no-write-lock-file --impure
     '';
   };
   systemd.timers.my-auto-upgrade = {
