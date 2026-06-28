@@ -44,7 +44,7 @@
     "org.mozilla.Thunderbird"
     "com.lunarclient.LunarClient"
     "com.mojang.Minecraft"
-    "com.zensystems.ZenBrowser"
+    "app.zen_browser.zen"
   ];
 
   programs.steam = {
