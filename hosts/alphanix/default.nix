@@ -563,9 +563,9 @@
         snapshot_create = "always";
         
         volume = {
-          "/cloud" = {
-            snapshot_dir = ".btrbk_snapshots";
-            subvolume = ".";
+          "/archive" = {
+            snapshot_dir = "cloud_snapshots";
+            subvolume = "cloud";
           };
         };
       };
@@ -609,9 +609,9 @@
         ssh_user = "btrbk";
         
         volume = {
-          "/cloud" = {
-            snapshot_dir = ".btrbk_snapshots";
-            subvolume = ".";
+          "/archive" = {
+            snapshot_dir = "cloud_snapshots";
+            subvolume = "cloud";
             target = "ssh://192.168.1.10/mnt/backup-hdd/alphanix/snapshots/cloud";
           };
           "/vol" = {
@@ -628,14 +628,16 @@
       onCalendar = null; # Manual execution only
       settings = {
         timestamp_format = "long";
-        snapshot_preserve = "no";           # Don't preserve source snapshots
-        target_preserve = "400d";           # Keep for 400 days (~13 months)
+        snapshot_preserve = "no";           # Don't touch source snapshots
+        target_preserve = "13m";            # Keep monthly backups back 12 months
+        target_preserve_min = "latest";     # Always keep latest backup
         incremental = "yes";                # Enable incremental transfers
-        snapshot_create = "ondemand";       # Create fresh snapshot when running
+        snapshot_create = "no";             # Reuse latest snapshot from cloud-local
         
         volume = {
-          "/cloud" = {
-            subvolume = ".";
+          "/archive" = {
+            snapshot_dir = "cloud_snapshots";
+            subvolume = "cloud";
             target = "/run/media/adam/SafeDrive/cloud";
           };
         };
@@ -668,7 +670,7 @@
     # Backup mount point
     "d /mnt/backup-hdd 0755 root root - -"
     # Btrbk snapshots directories
-    "d /cloud/.btrbk_snapshots 0755 root root - -"
+    "d /archive/cloud_snapshots 0755 root root - -"
     "d /vol/.btrbk_snapshots 0755 root root - -"
   ];
 
