@@ -79,6 +79,19 @@
   # Hibernate resume — tells the kernel where to find the hibernation image
   boot.resumeDevice = "/dev/disk/by-uuid/cc0e76e7-cbc6-4b63-888b-07e0b3914c04";
 
+  # Suspend-then-hibernate on lid close
+  # logind handles the lid switch and triggers the suspend-then-hibernate target
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+     HandleLidSwitchExternalPower = "suspend";
+  };
+
+  # After this delay in suspend, systemd will transition to hibernate
+  systemd.sleep.extraConfig = ''
+    HibernateDelaySec=30min
+  '';
+
+
   # Fingerprint reader configuration
   services.fprintd.enable = true;
   security.pam.services = {
