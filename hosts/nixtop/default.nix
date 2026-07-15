@@ -1,5 +1,4 @@
 { config, pkgs, lib, unstable, ... }:
-
 {
   imports = [
     ../../bundles/desktop.nix
@@ -10,6 +9,8 @@
 
 
   networking.hostName = "nixtop";
+
+  home-manager.backupFileExtension = "hm-bak";
 
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
@@ -43,7 +44,8 @@
 
 
   environment.systemPackages = with pkgs; [ 
-    unstable.orca-slicer
+    pkgs.orca-slicer
+    pkgs.high-tide
     pkgs.clonehero
      ];
 
@@ -87,9 +89,9 @@
   };
 
   # After this delay in suspend, systemd will transition to hibernate
-  systemd.sleep.extraConfig = ''
-    HibernateDelaySec=30min
-  '';
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "30min";
+  };
 
 
   # Fingerprint reader configuration

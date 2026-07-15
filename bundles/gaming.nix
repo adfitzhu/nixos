@@ -11,9 +11,9 @@
     gpu-viewer           # GPU monitoring
     lutris               # Gaming platform with installers
     clonehero            # Clone Hero rhythm game
-    superTuxKart         # TuxKart racing game
+    supertuxkart         # TuxKart racing game
     winetricks
-    wineWowPackages.stable  # Wine with 64-bit support
+    wineWow64Packages.stable  # Wine with 64-bit support
   ];
 
   # Steam configuration

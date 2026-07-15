@@ -16,7 +16,14 @@
     options = [ "defaults" "_netdev" "nofail" "actimeo=1" ];
   };
 
-  environment.systemPackages = with pkgs; [ pkgs.obs-studio pkgs.droidcam pkgs.kdePackages.skanpage pkgs.audacity pkgs.clementine pkgs.superTuxKart ];
+  environment.systemPackages = with pkgs; [
+    pkgs.obs-studio
+    pkgs.droidcam
+    pkgs.kdePackages.skanpage
+    pkgs.audacity
+    pkgs.clementine
+    pkgs.supertuxkart
+  ];
 
   services.flatpak.packages = [ "com.microsoft.Edge" ];
 

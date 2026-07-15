@@ -2,8 +2,8 @@
   description = "Minimal flake: exports only hosts found in ./hosts and user home configs in ./users";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -18,7 +18,10 @@
 
       mkHost = system: hostName: let
   pkgsBase = import nixpkgs { inherit system; };
-  unstablePkgs = import unstable { inherit system; config = pkgsBase.config or {}; };
+  unstablePkgs = import unstable {
+    inherit system;
+    config = builtins.removeAttrs (pkgsBase.config or {}) [ "replaceStdenv" ];
+  };
   # Expose unstable as an attribute on pkgs so modules can refer to
   # `pkgs.unstable.<pkg>` without needing an extra injected variable.
   pkgs = pkgsBase // { unstable = unstablePkgs; };
