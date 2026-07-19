@@ -26,6 +26,7 @@
     python3
     python3Packages.pyqt6
     docker-compose
+    tmux
  
   ];
   time.timeZone = "America/Los_Angeles";

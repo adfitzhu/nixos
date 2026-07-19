@@ -36,11 +36,11 @@
 
 
   # Mount NFS share from alphanix
-  fileSystems."/cloud" = {
-    device = "192.168.1.20:/";
-    fsType = "nfs4";
-    options = [ "_netdev" "nofail" "soft" "timeo=5" "retrans=2" "actimeo=1" "x-systemd.automount" "x-systemd.idle-timeout=600" ];
-  };
+  # fileSystems."/cloud" = {
+  #   device = "192.168.1.20:/";
+  #   fsType = "nfs4";
+  #   options = [ "_netdev" "nofail" "soft" "timeo=5" "retrans=2" "actimeo=1" ];
+  # };
 
 
   environment.systemPackages = with pkgs; [ 
