@@ -2,6 +2,7 @@
 {
   imports = [
     ../../bundles/desktop.nix
+    ../../bundles/server.nix
    # ../../bundles/plasma.nix
     ../../users/adam/user.nix
   #  ../../users/guest/user.nix
