@@ -10,6 +10,13 @@
 
   networking.hostName = "ScrapServer";
 
+  services.desktopManager.plasma6.enable = true;
+  services.displayManager = {
+    sddm.enable = true;
+    sddm.wayland.enable = true;
+    autoLogin = { enable = true; user = "adam"; };
+  };
+
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
     serviceConfig.Type = "oneshot";
