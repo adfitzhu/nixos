@@ -12,6 +12,7 @@ let
   domainNextcloud = secrets.nextcloud or "";
   domainTyac = secrets.theyoungartistsclub or "";
   domainAllergy = secrets.allergy or "";
+  domainYac = secrets.yachub or "";
   domainImmich = secrets.immich or "";
   domainMC1 = secrets.mc1 or "";
   domainMC2 = secrets.mc2 or "";
@@ -21,6 +22,7 @@ let
 
   # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
   composeFile = ./compose/docker-compose.yml;
+  yacComposeFile = ./compose/yac/docker-compose.yml;
 
   # Helper to build a virtualHost attr only if domain provided
   mkVHost = domain: cfg: lib.optionalAttrs (domain != "") { "${domain}" = { extraConfig = cfg; }; };
@@ -118,6 +120,22 @@ in
       (mkVHost domainAllergy ''
         encode zstd gzip
         reverse_proxy 127.0.0.1:8003 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainYac ''
+        encode zstd gzip
+
+        @yac_backend path /api/* /media/* /static/*
+        reverse_proxy @yac_backend 127.0.0.1:8004 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+
+        reverse_proxy 127.0.0.1:8084 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
@@ -272,6 +290,10 @@ in
     "d /vol/allergy 0755 root root -"
     "d /vol/allergy/allergy-db 0755 999 999 -"
     "d /vol/allergy/allergy 0755 root root -"
+    "d /vol/yac 0755 root root -"
+    "d /vol/yac/postgres 0755 999 999 -"
+    "d /vol/yac/media 0755 root root -"
+    "d /vol/yac/staticfiles 0755 root root -"
     # uploads.ini host file placeholder (Compose maps /vol/uploads.ini)
     "f /vol/uploads.ini 0644 root root -"
     # Backup-related directories
@@ -413,6 +435,31 @@ in
       docker stop --time=30 allergy-db theyoungartistsclub-db || true
       echo "[compose-webstack] Stopping remaining stack" >&2
       docker compose -f ${composeFile} down --timeout 30
+    '';
+  };
+
+  systemd.services.docker-compose-yac = {
+    description = "Docker Compose YAC stack (backend + frontend + postgres)";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    restartTriggers = [ yacComposeFile ];
+    path = [ pkgs.docker pkgs.coreutils pkgs.bash ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      TimeoutStopSec = "60s";
+    };
+    script = ''
+      set -euo pipefail
+      echo "[compose-yac] Bringing YAC stack up" >&2
+      docker compose -f ${yacComposeFile} up -d --build --remove-orphans
+    '';
+    preStop = ''
+      set -euo pipefail
+      echo "[compose-yac] Stopping YAC stack" >&2
+      docker compose -f ${yacComposeFile} down --timeout 30
     '';
   };
 

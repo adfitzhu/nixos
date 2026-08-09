@@ -1,0 +1,48 @@
+version: "3.9"
+
+name: yac
+
+services:
+  yac-postgres:
+    image: postgres:16-alpine
+    container_name: yac-postgres
+    restart: unless-stopped
+    env_file:
+      - /vol/secrets/yac.env
+    volumes:
+      - /vol/yac/postgres:/var/lib/postgresql/data
+    networks:
+      - yac-backend
+
+  yac-backend:
+    build:
+      context: /home/adam/github/YAC/backend
+    container_name: yac-backend
+    restart: unless-stopped
+    env_file:
+      - /vol/secrets/yac.env
+    depends_on:
+      - yac-postgres
+    ports:
+      - "127.0.0.1:8004:8000"
+    volumes:
+      - /vol/yac/media:/app/media
+      - /vol/yac/staticfiles:/app/staticfiles
+    networks:
+      - yac-backend
+
+  yac-frontend:
+    build:
+      context: /home/adam/github/YAC/frontend
+    container_name: yac-frontend
+    restart: unless-stopped
+    depends_on:
+      - yac-backend
+    ports:
+      - "127.0.0.1:8084:80"
+    networks:
+      - yac-backend
+
+networks:
+  yac-backend:
+    driver: bridge
