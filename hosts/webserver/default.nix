@@ -167,8 +167,11 @@ in
           header_up X-Forwarded-For {remote}
         }
 
-        # Block django-admin from WAN
-        @django_admin_blocked path /django-admin /django-admin/*
+        # Block django-admin from non-LAN sources
+        @django_admin_blocked {
+          path /django-admin /django-admin/*
+          not remote_ip private_ranges
+        }
         respond @django_admin_blocked 403
 
         @yac_backend path /api/*
