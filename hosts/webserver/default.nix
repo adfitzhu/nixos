@@ -83,6 +83,32 @@ in
     (pkgs.writeShellScriptBin "backup-manager" ''
       exec ${pkgs.bash}/bin/bash ${../../utils/backup-manager.sh} "$@"
     '')
+    (pkgs.writeShellScriptBin "yac-deploy" ''
+      set -euo pipefail
+
+      repo_dir="/home/adam/github/YAC"
+      branch="''${1:-main}"
+
+      if [[ ! -d "$repo_dir/.git" ]]; then
+        echo "[yac-deploy] Git repository not found at $repo_dir" >&2
+        exit 1
+      fi
+
+      echo "[yac-deploy] Updating repo: $repo_dir (branch: $branch)" >&2
+      cd "$repo_dir"
+      git fetch origin "$branch"
+      git checkout "$branch"
+      git pull --ff-only origin "$branch"
+
+      echo "[yac-deploy] Restarting docker-compose-yac service" >&2
+      sudo systemctl restart docker-compose-yac
+
+      echo "[yac-deploy] Service status" >&2
+      sudo systemctl status docker-compose-yac --no-pager
+
+      echo "[yac-deploy] Running containers" >&2
+      docker ps --filter name=yac-
+    '')
   ];
 
   # Caddy reverse proxy (recommended to run as a NixOS service for ACME + systemd integration)
