@@ -156,10 +156,10 @@ in
       (mkVHost domainYac ''
         encode zstd gzip
 
-        # Django admin - LAN only (192.168.x.x and 10.x.x.x)
+        # Django admin - LAN only (all private IPv4/IPv6 ranges)
         @django_admin {
           path /django-admin /django-admin/*
-          remote_ip 192.168.0.0/16 10.0.0.0/8
+          remote_ip private_ranges
         }
         reverse_proxy @django_admin 127.0.0.1:8004 {
           header_up Host {host}
