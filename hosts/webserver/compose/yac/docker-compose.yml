@@ -24,7 +24,7 @@ services:
     depends_on:
       - yac-postgres
     ports:
-      - "192.168.1.10:8004:8000"
+      - "8004:8000"
     volumes:
       - /vol/yac/media:/app/media
       - /vol/yac/staticfiles:/app/staticfiles
