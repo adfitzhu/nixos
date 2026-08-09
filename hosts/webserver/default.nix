@@ -58,6 +58,8 @@ in
     
     # Firewall configuration
     firewall.allowedTCPPorts = [ 80 443 3001 8080 ];
+    # Allow Django admin (8004) only from LAN interface, not WAN
+    firewall.interfaces.enp2s0.allowedTCPPorts = [ 8004 ];
   
     firewall.allowedUDPPorts = [53];
   
