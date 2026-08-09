@@ -158,7 +158,7 @@ in
 
         # Django admin - LAN only (192.168.x.x and 10.x.x.x)
         @django_admin {
-          path /django-admin/*
+          path /django-admin /django-admin/*
           remote_ip 192.168.0.0/16 10.0.0.0/8
         }
         reverse_proxy @django_admin 127.0.0.1:8004 {
@@ -168,7 +168,7 @@ in
         }
 
         # Block django-admin from WAN
-        @django_admin_blocked path /django-admin/*
+        @django_admin_blocked path /django-admin /django-admin/*
         respond @django_admin_blocked 403
 
         @yac_backend path /api/*
