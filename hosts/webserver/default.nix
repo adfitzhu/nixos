@@ -154,7 +154,7 @@ in
       (mkVHost domainYac ''
         encode zstd gzip
 
-        @yac_backend path /api/* /media/* /static/*
+        @yac_backend path /api/*
         reverse_proxy @yac_backend 127.0.0.1:8004 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}

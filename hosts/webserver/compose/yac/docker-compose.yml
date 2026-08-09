@@ -40,6 +40,9 @@ services:
       - yac-backend
     ports:
       - "127.0.0.1:8084:80"
+    volumes:
+      - /vol/yac/media:/vol/media:ro
+      - /vol/yac/staticfiles:/vol/staticfiles:ro
     networks:
       - yac-backend
 
