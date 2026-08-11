@@ -33,7 +33,6 @@
     unstable.orca-slicer
     pkgs.high-tide
     pkgs.clonehero
-    pkgs.kdenlive
     pkgs.intel-gpu-tools
   ];
 
