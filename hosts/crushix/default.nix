@@ -3,17 +3,16 @@
 {
   imports = [
     ../../bundles/desktop.nix
+    ../../bundles/gaming.nix
     ../../users/adam/user.nix
     ../../users/eli/user.nix
-    ../../users/steven/user.nix
   ];
 
-  networking.hostName = "Josh";
+  networking.hostName = "crushix";
 
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
     eli = import ../../users/eli/home.nix;
-    steven = import ../../users/steven/home.nix;
   };
 
   services.desktopManager.plasma6.enable = true;
@@ -32,7 +31,10 @@
 
   environment.systemPackages = with pkgs; [
     unstable.orca-slicer
+    pkgs.high-tide
     pkgs.clonehero
+    pkgs.kdenlive
+    pkgs.intel-gpu-tools
   ];
 
   services.flatpak.packages = [
@@ -47,13 +49,9 @@
     "app.zen_browser.zen"
   ];
 
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    localNetworkGameTransfers.openFirewall = true;
-    extraCompatPackages = [ pkgs.proton-ge-bin ];
-  };
-  hardware.steam-hardware.enable = true;
+  hardware.graphics.extraPackages = with pkgs; [
+    vpl-gpu-rt
+  ];
 
   virtualisation.virtualbox.host = {
     enable = false;
@@ -87,7 +85,7 @@
           "/home" = {
             snapshot_dir = ".snapshots";
             subvolume = ".";
-            target = "ssh://192.168.1.10/mnt/backup-hdd/Josh/snapshots/home";
+            target = "ssh://192.168.1.10/mnt/backup-hdd/crushix/snapshots/home";
           };
         };
       };
@@ -113,7 +111,7 @@
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
-  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#Josh --no-write-lock-file --impure
+  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#crushix --no-write-lock-file --impure
     '';
   };
   systemd.timers.my-auto-upgrade = {
