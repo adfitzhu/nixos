@@ -53,7 +53,7 @@
   ];
 
   boot.loader.systemd-boot.extraEntries = {
-    "windows.conf".text = ''
+    "windows.conf" = ''
       title Windows
       efi /EFI/Microsoft/Boot/bootmgfw.efi
     '';
