@@ -53,6 +53,13 @@
     vpl-gpu-rt
   ];
 
+  boot.loader.systemd-boot.extraEntries = {
+    "windows.conf".text = ''
+      title Windows
+      efi /EFI/Microsoft/Boot/bootmgfw.efi
+    '';
+  };
+
   virtualisation.virtualbox.host = {
     enable = false;
     enableExtensionPack = true;
