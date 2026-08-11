@@ -59,8 +59,6 @@
   };
   boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
 
-  boot.resumeDevice = null;
-
   services.fprintd.enable = true;
   security.pam.services = {
     sudo.fprintAuth = false;
