@@ -34,14 +34,14 @@
     unstable.orca-slicer
     pkgs.high-tide
     pkgs.clonehero
+    pkgs.discord
+    pkgs.obs-studio
     pkgs.intel-gpu-tools
   ];
 
   services.flatpak.packages = [
     "com.usebottles.bottles"
     "com.heroicgameslauncher.hgl"
-    "com.discordapp.Discord"
-    "com.obsproject.Studio"
     "com.github.tchx84.Flatseal"
     "org.mozilla.Thunderbird"
     "com.lunarclient.LunarClient"
