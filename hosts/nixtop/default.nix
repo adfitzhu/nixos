@@ -10,6 +10,7 @@
 
 
   networking.hostName = "nixtop";
+  networking.networkmanager.connectionConfig."connection.mdns" = 2;
 
   home-manager.backupFileExtension = "hm-bak";
 

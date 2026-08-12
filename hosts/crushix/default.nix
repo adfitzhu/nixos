@@ -9,6 +9,7 @@
   ];
 
   networking.hostName = "crushix";
+  networking.networkmanager.connectionConfig."connection.mdns" = 2;
 
   home-manager.users = {
     adam = import ../../users/adam/home.nix;
@@ -64,12 +65,6 @@
     enableExtensionPack = true;
   };
   boot.blacklistedKernelModules = [ "kvm" "kvm-intel" ];
-
-  services.fprintd.enable = true;
-  security.pam.services = {
-    sudo.fprintAuth = false;
-    sddm.fprintAuth = true;
-  };
 
   services.btrbk.instances = {
     "home-to-webserver" = {
