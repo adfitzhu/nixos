@@ -112,7 +112,11 @@
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
-  ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --upgrade --refresh --flake github:adfitzhu/nixos#crushix --no-write-lock-file --impure
+      # Clear stale transient unit from interrupted previous runs.
+      systemctl stop nixos-rebuild-switch-to-configuration.service || true
+      systemctl reset-failed nixos-rebuild-switch-to-configuration.service || true
+
+      ${pkgs.nixos-rebuild}/bin/nixos-rebuild switch --refresh --flake github:adfitzhu/nixos#crushix --no-write-lock-file --impure
     '';
   };
   systemd.timers.my-auto-upgrade = {
