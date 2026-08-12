@@ -107,6 +107,8 @@
 
   systemd.services.my-auto-upgrade = {
     description = "Custom NixOS auto-upgrade (host-specific)";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
     serviceConfig.Type = "oneshot";
     script = ''
       set -euxo pipefail
