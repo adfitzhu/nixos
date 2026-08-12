@@ -42,6 +42,7 @@
   services.flatpak.packages = [
     "com.usebottles.bottles"
     "com.heroicgameslauncher.hgl"
+    "com.moonlight_stream.Moonlight"
     "com.github.tchx84.Flatseal"
     "org.mozilla.Thunderbird"
     "com.lunarclient.LunarClient"
