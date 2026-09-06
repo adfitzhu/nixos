@@ -4,6 +4,7 @@
   imports = [
     ../../bundles/desktop.nix
     ../../bundles/gaming.nix
+    ../../bundles/compat-runtime.nix
     ../../users/adam/user.nix
     ../../users/eli/user.nix
   ];
