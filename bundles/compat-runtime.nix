@@ -10,16 +10,16 @@
       freetype
       alsa-lib
       libGL
-      xorg.libX11
-      xorg.libXext
-      xorg.libXrender
-      xorg.libXtst
-      xorg.libXi
-      xorg.libXrandr
-      xorg.libXcursor
-      xorg.libXfixes
-      xorg.libXinerama
-      xorg.libxcb
+      libx11
+      libxext
+      libxrender
+      libxtst
+      libxi
+      libxrandr
+      libxcursor
+      libxfixes
+      libxinerama
+      libxcb
     ];
   };
 }
