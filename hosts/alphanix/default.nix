@@ -732,7 +732,9 @@
       
       # Find and restart systemd services for docker-* containers
       echo "Restarting container services..."
-      SERVICES=$(systemctl list-units --type=service --state=running --no-legend | grep '^docker-' | awk '{print $1}')
+      SERVICES=$(systemctl list-units --type=service --state=running 'docker-*' --no-legend --plain --full | while read -r SERVICE _; do
+        echo "$SERVICE"
+      done)
       
       for SERVICE in $SERVICES; do
         echo "Restarting: $SERVICE"
