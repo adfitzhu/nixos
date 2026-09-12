@@ -20,7 +20,10 @@ in
   };
 
   # Networking configuration
-  networking.hostName = "Octoprint";
+  networking = {
+    hostName = "Octoprint";
+    firewall.allowedTCPPorts = [ 5000 8080 ];
+  };
 
   # Persistent storage for OctoPrint lives on the host at /vol/octoprint and is
   # mounted into the container at /octoprint.
