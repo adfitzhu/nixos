@@ -34,6 +34,7 @@
   environment.systemPackages = with pkgs; [
     unstable.orca-slicer
     pkgs.high-tide
+    #pkgs.pandora-launcher
     pkgs.clonehero
     pkgs.discord
     pkgs.obs-studio

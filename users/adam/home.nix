@@ -9,6 +9,11 @@ in
   nixpkgs.config.allowUnfree = true;
   home.stateVersion = "25.05";
 
+  home.file.".local/share/flatpak/overrides/global".text = ''
+    [Context]
+    filesystems=home;/run/user/1000:ro
+  '';
+
  # services.nextcloud-client.enable = true;
 
   services.syncthing = {

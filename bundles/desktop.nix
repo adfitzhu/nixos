@@ -8,6 +8,7 @@
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
   networking.networkmanager.enable = true;
+  security.polkit.enable = true;
   system.stateVersion = "25.05";
 
 
@@ -93,10 +94,14 @@
 
   services.flatpak.uninstallUnmanaged = false;
 
-  # Global flatpak overrides - allows all apps access to home directory
+  # Global flatpak overrides.
+  # Read-only access to /run/user/1000 lets X11 clients inside Flatpaks read the
+  # live Xauthority file used by Plasma Wayland + XWayland on these desktop hosts.
   services.flatpak.overrides = {
     global = {
-      Context.filesystems = [ "home" ];
+      Context = {
+        filesystems = [ "home" "/run/user/1000:ro" ];
+      };
     };
   };
   time.timeZone = "America/Los_Angeles";

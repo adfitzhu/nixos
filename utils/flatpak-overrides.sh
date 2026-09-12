@@ -2,7 +2,8 @@
 # flatpak-overrides.sh - Apply consistent Flatpak permissions
 
 # Global overrides for all apps
-flatpak override --user --socket=wayland --nosocket=x11 --nosocket=fallback-x11
+# Prefer Wayland, but keep X11 available for Flatpaks that still rely on XWayland.
+flatpak override --user --socket=wayland --socket=fallback-x11
 flatpak override --user --env=XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons
 flatpak override --user --env=GTK_THEME=Adwaita:dark
 
