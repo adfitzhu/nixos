@@ -2,7 +2,7 @@
 
 let
   # Desktop mode toggle - set to true to enable desktop for initial setup/troubleshooting
-  desktopMode = true;  # Change to 'false' once configured, then rebuild
+  desktopMode = false;  # Change to 'false' once configured, then rebuild
 in
 {
   imports = [
