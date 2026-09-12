@@ -23,6 +23,14 @@ in
   networking = {
     hostName = "Octoprint";
     firewall.allowedTCPPorts = [ 5000 8080 ];
+    interfaces.enp3s0 = {
+      ipv4.addresses = [{
+        address = "192.168.1.45";
+        prefixLength = 24;
+      }];
+    };
+    defaultGateway = "192.168.1.1";
+    nameservers = [ "192.168.1.10" "192.168.1.1" ];
   };
 
   # Persistent storage for OctoPrint lives on the host at /vol/octoprint and is
