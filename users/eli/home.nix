@@ -8,10 +8,13 @@ in
 {
   home.stateVersion = "25.05";
   
-  home.file.".local/share/flatpak/overrides/global".text = ''
-    [Context]
-    filesystems=home;/run/user/1000:ro
-  '';
+  home.file.".local/share/flatpak/overrides/global" = {
+    force = true;
+    text = ''
+      [Context]
+      filesystems=home;/run/user/1000:ro
+    '';
+  };
 
   services.syncthing = {
     enable = true;
