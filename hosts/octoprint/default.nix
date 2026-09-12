@@ -20,63 +20,34 @@ in
   };
 
   # Networking configuration
-  networking = {
-    hostName = "Octoprint";
-  # useDHCP = true;  # Commented out to avoid conflict with NetworkManager
-    # Static IP config for enp2s0 is commented out for WiFi testing.
-    # interfaces.enp2s0 = {
-    #   ipv4.addresses = [{
-    #     address = "192.168.1.50";
-    #     prefixLength = 24;
-    #   }];
-    # };
-    # defaultGateway = "192.168.1.1";
-    # nameservers = [ "192.168.1.10" "192.168.1.1" ];
-  };
+  networking.hostName = "Octoprint";
 
-  # Filesystem mounts
-  # (Temporarily disabled) Filesystem mount for /vol.
-  # You mentioned there's currently nothing mounted at /vol for testing, so
-  # the mount is commented out. The tmpfiles rules below will still create
-  # /vol (root:root 0755) and /vol/octoprint (owned by octoprint) so OctoPrint
-  # can store state.
-  # Uncomment when the disk is available.
-  # fileSystems."/vol" = {
-  #   device = "/dev/disk/by-label/VOL";  # Adjust this label to match your disk
-  #   fsType = "ext4";  # or "btrfs" if you prefer
-  #   options = [ "defaults" ];
-  # };
+  # Persistent storage for OctoPrint lives on the host at /vol/octoprint and is
+  # mounted into the container at /octoprint.
 
-  # OctoPrint service configuration
-  services.octoprint = {
-    enable = true;
-    host = "0.0.0.0";  # Listen on all interfaces
-    openFirewall = true;
-    stateDir = "/vol/octoprint";  # Use /vol for persistent storage
-    
-    # Enable webcam streaming (matches ENABLE_MJPG_STREAMER from docker compose)
-    extraConfig = {
-      webcam = {
-        enabled = true;
-        stream = "http://localhost:8080/?action=stream";
-        snapshot = "http://localhost:8080/?action=snapshot";
-        ffmpeg = "${pkgs.ffmpeg}/bin/ffmpeg";
+  # OctoPrint is now managed via OCI container instead of the Nix package.
+  services.octoprint.enable = false;
+
+  # Docker backend for the OctoPrint OCI container
+  virtualisation.docker.enable = true;
+  virtualisation.oci-containers = {
+    backend = "docker";
+    containers.octoprint = {
+      image = "octoprint/octoprint:latest";
+      autoStart = true;
+      environment = {
+        TZ = "America/Los_Angeles";
       };
-      # Serial port configuration
-      serial = {
-        port = "/dev/ttyUSB0";
-        baudrate = 115200;  # Adjust if your printer uses different baud rate
-      };
+      volumes = [
+        "/vol/octoprint:/octoprint"  # host /vol/octoprint -> container /octoprint
+      ];
+      extraOptions = [
+        "--network=host"
+        "--device=/dev/ttyUSB0:/dev/ttyUSB0"
+        "--device=/dev/video0:/dev/video0"
+        "--device=/dev/bus/usb:/dev/bus/usb"
+      ];
     };
-    
-    # Add useful plugins
-    plugins = plugins: with plugins; [
-      # Webcam streaming plugin
-      # Add more plugins as needed, e.g.:
-      # bedlevelvisualizer
-      # printtimegenius
-      # themeify
-    ];
   };
 
   # MJPG Streamer for webcam (matches docker compose ENABLE_MJPG_STREAMER)
@@ -110,10 +81,10 @@ in
   # Also add octoprint user to video group for webcam
   users.users.octoprint.extraGroups = [ "dialout" "video" ];
 
-  # Ensure directories exist
+  # Ensure directories exist and are writable for the container-mounted data dir.
   systemd.tmpfiles.rules = [
     "d /vol 0755 root root - -"
-    "d /vol/octoprint 0755 octoprint octoprint - -"
+    "d /vol/octoprint 0777 root root - -"
   ];
 
   # Optional: Systemd service to monitor printer connection
