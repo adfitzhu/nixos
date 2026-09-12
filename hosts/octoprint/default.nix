@@ -77,9 +77,16 @@ in
 
   # Add user to dialout and video groups for serial port and webcam access
   users.users.adam.extraGroups = [ "dialout" "video" ];
-  
-  # Also add octoprint user to video group for webcam
-  users.users.octoprint.extraGroups = [ "dialout" "video" ];
+
+  # Explicitly define the octoprint system user/group used by the host webcam
+  # helper service. This is needed because we are no longer using the Nix
+  # OctoPrint module directly.
+  users.groups.octoprint = {};
+  users.users.octoprint = {
+    isSystemUser = true;
+    group = "octoprint";
+    extraGroups = [ "dialout" "video" ];
+  };
 
   # Ensure directories exist and are writable for the container-mounted data dir.
   systemd.tmpfiles.rules = [
