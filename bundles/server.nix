@@ -27,6 +27,20 @@
     python3Packages.pyqt6
     docker-compose
     tmux
+    nodejs
+    wget
+    curl
+    htop
+    rsync
+    jq
+    ripgrep
+    fd
+    dnsutils
+    nettools
+    tree
+    ncdu
+    openssl
+    lsof
  
   ];
   time.timeZone = "America/Los_Angeles";

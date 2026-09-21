@@ -50,6 +50,7 @@
     pkgs.orca-slicer
     pkgs.high-tide
     pkgs.clonehero
+    nodejs
      ];
 
   services.flatpak.packages = [

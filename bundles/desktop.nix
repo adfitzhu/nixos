@@ -33,6 +33,19 @@
     unrar
     gzip
     bzip2
+    wget
+    curl
+    htop
+    rsync
+    jq
+    ripgrep
+    fd
+    dnsutils
+    nettools
+    tree
+    ncdu
+    openssl
+    lsof
     xdg-utils
     corefonts
     vista-fonts
