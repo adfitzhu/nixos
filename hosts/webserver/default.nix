@@ -117,11 +117,14 @@ in
       set -euo pipefail
 
       repo_dir="/home/adam/github/Artsite"
+      repo_url="git@github.com:adfitzhu/Artsite.git"
       branch="''${1:-main}"
 
+      mkdir -p "$(dirname "$repo_dir")"
+
       if [[ ! -d "$repo_dir/.git" ]]; then
-        echo "[artsite-deploy] Git repository not found at $repo_dir" >&2
-        exit 1
+        echo "[artsite-deploy] Cloning repo to $repo_dir" >&2
+        git clone "$repo_url" "$repo_dir"
       fi
 
       echo "[artsite-deploy] Updating repo: $repo_dir (branch: $branch)" >&2
@@ -560,6 +563,15 @@ in
     };
     script = ''
       set -euo pipefail
+      repo_dir="/home/adam/github/Artsite"
+      repo_url="git@github.com:adfitzhu/Artsite.git"
+
+      if [[ ! -d "$repo_dir/.git" ]]; then
+        echo "[compose-artsite] Repo not found at $repo_dir; cloning" >&2
+        mkdir -p "$(dirname "$repo_dir")"
+        git clone "$repo_url" "$repo_dir"
+      fi
+
       echo "[compose-artsite] Bringing Artsite stack up" >&2
       docker compose -f ${artsiteComposeFile} up -d --build --remove-orphans
     '';
