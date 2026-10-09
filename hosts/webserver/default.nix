@@ -13,6 +13,7 @@ let
   domainTyac = secrets.theyoungartistsclub or "";
   domainAllergy = secrets.allergy or "";
   domainYac = secrets.yachub or "";
+  domainArtsite = secrets.artsite or "";
   domainImmich = secrets.immich or "";
   domainMC1 = secrets.mc1 or "";
   domainMC2 = secrets.mc2 or "";
@@ -20,9 +21,10 @@ let
   domainMC4 = secrets.mc4 or "";
   domainMC5 = secrets.mc5 or "";
 
-  # Path to docker-compose file (used by the systemd service restartTriggers and scripts)
+  # Path to docker-compose files (used by the systemd service restartTriggers and scripts)
   composeFile = ./compose/docker-compose.yml;
   yacComposeFile = ./compose/yac/docker-compose.yml;
+  artsiteComposeFile = ./compose/artsite/docker-compose.yml;
 
   # Helper to build a virtualHost attr only if domain provided
   mkVHost = domain: cfg: lib.optionalAttrs (domain != "") { "${domain}" = { extraConfig = cfg; }; };
@@ -111,6 +113,32 @@ in
       echo "[yac-deploy] Running containers" >&2
       docker ps --filter name=yac-
     '')
+    (pkgs.writeShellScriptBin "artsite-deploy" ''
+      set -euo pipefail
+
+      repo_dir="/home/adam/github/Artsite"
+      branch="''${1:-main}"
+
+      if [[ ! -d "$repo_dir/.git" ]]; then
+        echo "[artsite-deploy] Git repository not found at $repo_dir" >&2
+        exit 1
+      fi
+
+      echo "[artsite-deploy] Updating repo: $repo_dir (branch: $branch)" >&2
+      cd "$repo_dir"
+      git fetch origin "$branch"
+      git checkout "$branch"
+      git pull --ff-only origin "$branch"
+
+      echo "[artsite-deploy] Restarting docker-compose-artsite service" >&2
+      sudo systemctl restart docker-compose-artsite
+
+      echo "[artsite-deploy] Service status" >&2
+      sudo systemctl status docker-compose-artsite --no-pager
+
+      echo "[artsite-deploy] Running containers" >&2
+      docker ps --filter name=artsite
+    '')
   ];
 
   # Caddy reverse proxy (recommended to run as a NixOS service for ACME + systemd integration)
@@ -182,6 +210,14 @@ in
         }
 
         reverse_proxy 127.0.0.1:8084 {
+          header_up Host {host}
+          header_up X-Forwarded-Proto {scheme}
+          header_up X-Forwarded-For {remote}
+        }
+      '') //
+      (mkVHost domainArtsite ''
+        encode zstd gzip
+        reverse_proxy 127.0.0.1:4321 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
@@ -506,6 +542,31 @@ in
       set -euo pipefail
       echo "[compose-yac] Stopping YAC stack" >&2
       docker compose -f ${yacComposeFile} down --timeout 30
+    '';
+  };
+
+  systemd.services.docker-compose-artsite = {
+    description = "Docker Compose Artsite stack";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    restartTriggers = [ artsiteComposeFile ];
+    path = [ pkgs.docker pkgs.coreutils pkgs.bash ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      TimeoutStopSec = "60s";
+    };
+    script = ''
+      set -euo pipefail
+      echo "[compose-artsite] Bringing Artsite stack up" >&2
+      docker compose -f ${artsiteComposeFile} up -d --build --remove-orphans
+    '';
+    preStop = ''
+      set -euo pipefail
+      echo "[compose-artsite] Stopping Artsite stack" >&2
+      docker compose -f ${artsiteComposeFile} down --timeout 30
     '';
   };
 

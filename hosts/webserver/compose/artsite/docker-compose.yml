@@ -1,0 +1,19 @@
+name: artsite
+
+services:
+  artsite-web:
+    build:
+      context: /home/adam/github/Artsite
+      dockerfile: Dockerfile
+    container_name: artsite-web
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    ports:
+      - "127.0.0.1:4321:80"
+    networks:
+      - artsite-backend
+
+networks:
+  artsite-backend:
+    driver: bridge
