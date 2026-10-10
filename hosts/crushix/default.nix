@@ -41,8 +41,12 @@
     pkgs.clonehero
     pkgs.discord
     pkgs.obs-studio
+    pkgs.piper
+    pkgs.libratbag
     pkgs.intel-gpu-tools
   ];
+
+  services.ratbagd.enable = true;
 
   services.flatpak.packages = [
     "com.usebottles.bottles"

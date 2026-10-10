@@ -49,8 +49,12 @@
     pkgs.orca-slicer
     pkgs.high-tide
     pkgs.clonehero
+    pkgs.piper
+    pkgs.libratbag
     nodejs
      ];
+
+  services.ratbagd.enable = true;
 
   services.flatpak.packages = [
     "com.usebottles.bottles"
