@@ -25,6 +25,9 @@
 
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
+  # AULA F75 keyboard support testing
+  programs.aula-f75.enable = true;
+
   fileSystems."/cloud" = {
     device = "192.168.1.20:/";
     fsType = "nfs4";

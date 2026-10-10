@@ -7,9 +7,10 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    aula-f75.url = "github:daschinmoy21/aula-f75-linux";
   };
 
-  outputs = { self, nixpkgs, home-manager, nix-flatpak, unstable, ... }:
+  outputs = { self, nixpkgs, home-manager, nix-flatpak, unstable, aula-f75, ... }:
     let
   # Discover hosts by listing the `hosts/` directory. Each directory
   # under `hosts/` is treated as a host name with a `default.nix` file.
@@ -43,6 +44,7 @@
           })
           # Provide nix-flatpak module so services.flatpak.* options exist
           nix-flatpak.nixosModules.nix-flatpak
+          aula-f75.nixosModules.default
           (import hostFilePath)
         ];
       };

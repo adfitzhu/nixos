@@ -37,7 +37,6 @@
   boot.kernelPackages = pkgs.linuxPackages_zen;         # Stable zen
   # boot.kernelPackages = unstable.linuxPackages_latest;  # Bleeding edge (may have issues) 
 
-
   # Mount NFS share from alphanix
   # fileSystems."/cloud" = {
   #   device = "192.168.1.20:/";
