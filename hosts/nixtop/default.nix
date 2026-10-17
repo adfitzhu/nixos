@@ -34,7 +34,7 @@
   # Kernel choice:
   # boot.kernelPackages = unstable.linuxPackages_zen;       # Newest zen
   # boot.kernelPackages = unstable.linuxPackages_lqx;     # Gaming optimized
-  boot.kernelPackages = pkgs.linuxPackages_zen;         # Stable zen
+  # boot.kernelPackages = pkgs.linuxPackages_zen;       # Stable zen
   # boot.kernelPackages = unstable.linuxPackages_latest;  # Bleeding edge (may have issues) 
 
   # Mount NFS share from alphanix
@@ -51,10 +51,23 @@
     pkgs.clonehero
     pkgs.piper
     pkgs.libratbag
+    pkgs.android-tools
     nodejs
      ];
 
   services.ratbagd.enable = true;
+
+  # Android container runtime
+  virtualisation.waydroid.enable = true;
+  # Force Waydroid's network helper onto nftables so it does not depend on
+  # legacy ip_tables kernel modules.
+  virtualisation.waydroid.package = pkgs.waydroid.overrideAttrs (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace data/scripts/waydroid-net.sh \
+        --replace 'LXC_USE_NFT="false"' 'LXC_USE_NFT="true"'
+    '';
+  });
+  systemd.services.waydroid-container.path = [ pkgs.nftables ];
 
   services.flatpak.packages = [
     "com.usebottles.bottles"
