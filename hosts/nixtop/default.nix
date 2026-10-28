@@ -56,6 +56,7 @@
      ];
 
   services.ratbagd.enable = true;
+  services.teamviewer.enable = true;
 
   # Android container runtime
   virtualisation.waydroid.enable = true;
