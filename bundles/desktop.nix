@@ -105,6 +105,37 @@
     };
   };
 
+  # Periodically refresh per-user Flatpak font caches to avoid stale glyph caches
+  # causing tofu/square text in sandboxed apps after host font updates.
+  systemd.user.services.flatpak-font-cache-refresh = {
+    description = "Refresh Flatpak font caches";
+    serviceConfig = {
+      Type = "oneshot";
+    };
+    script = ''
+      set -eu
+
+      cache_root="$HOME/.var/app"
+      if [[ -d "$cache_root" ]]; then
+        find "$cache_root" -type d -path '*/cache/fontconfig' -prune -exec rm -rf {} + || true
+      fi
+
+      ${pkgs.flatpak}/bin/flatpak list --app --columns=application | while IFS= read -r app; do
+        [[ -n "$app" ]] || continue
+        ${pkgs.flatpak}/bin/flatpak run --command=fc-cache "$app" -f -v >/dev/null 2>&1 || true
+      done
+    '';
+  };
+
+  systemd.user.timers.flatpak-font-cache-refresh = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      RandomizedDelaySec = "1h";
+    };
+  };
+
   services.flatpak.uninstallUnmanaged = false;
 
   # Global flatpak overrides.
