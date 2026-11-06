@@ -721,19 +721,35 @@
       # Pull each image
       echo "Pulling latest versions..."
       UPDATED=""
+      FAILED=""
       for IMAGE in $IMAGES; do
         echo "Pulling: $IMAGE"
-        # Capture the pull output to detect if image was updated
-        if docker pull "$IMAGE" 2>&1 | grep -q "Downloaded newer image\|Pull complete"; then
+        # Capture output so we can both detect updates and report failures.
+        if ! PULL_OUTPUT=$(docker pull "$IMAGE" 2>&1); then
+          echo "$PULL_OUTPUT"
+          echo "  Error: failed to pull $IMAGE"
+          FAILED="$FAILED $IMAGE"
+          continue
+        fi
+
+        echo "$PULL_OUTPUT"
+        if echo "$PULL_OUTPUT" | grep -q "Downloaded newer image\|Pull complete"; then
           UPDATED="$UPDATED $IMAGE"
         fi
       done
       echo ""
       
-      # Find and restart systemd services for docker-* containers
+      if [ -n "$FAILED" ]; then
+        echo "Pull failures:$FAILED"
+      fi
+
+      # Restart enabled docker-* services so containers are recreated with the latest images.
+      # We intentionally restart even if no updates were detected to keep behavior predictable.
       echo "Restarting container services..."
-      SERVICES=$(systemctl list-units --type=service --state=running 'docker-*' --no-legend --plain --full | while read -r SERVICE _; do
-        echo "$SERVICE"
+      SERVICES=$(systemctl list-unit-files 'docker-*' --no-legend --plain | while read -r SERVICE STATE _; do
+        if [ "$STATE" = "enabled" ] || [ "$STATE" = "enabled-runtime" ]; then
+          echo "$SERVICE"
+        fi
       done)
       
       for SERVICE in $SERVICES; do
@@ -743,6 +759,11 @@
       
       echo ""
       echo "=== Docker image update complete! ==="
+
+      if [ -n "$FAILED" ]; then
+        echo "Completed with pull failures."
+        exit 1
+      fi
     '';
   };
   systemd.timers.docker-image-update = {
