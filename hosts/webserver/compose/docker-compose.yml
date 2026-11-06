@@ -1,8 +1,5 @@
 version: "3.9"
 
-# Set explicit project name to control volume naming
-name: nextcloud
-
 # Caddy (running as a NixOS service) proxies public traffic to these.
 
 services:
