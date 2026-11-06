@@ -7,6 +7,8 @@ services:
     image: postgres:16-alpine
     container_name: yac-postgres
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     env_file:
       - /vol/secrets/yac.env
     volumes:
@@ -19,6 +21,8 @@ services:
       context: /home/adam/github/YAC/backend
     container_name: yac-backend
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     env_file:
       - /vol/secrets/yac.env
     depends_on:
@@ -36,6 +40,8 @@ services:
       context: /home/adam/github/YAC/frontend
     container_name: yac-frontend
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
       - yac-backend
     ports:

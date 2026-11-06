@@ -37,11 +37,8 @@ in
    #../../users/guest/user.nix
   ];
 
-  # Enable VirtualBox guest additions when this system runs as a VirtualBox VM
-  virtualisation.virtualbox.guest.enable = true;
-  services.xserver.videoDrivers = [ "virtualbox" ];
-
-
+  # This host is physical hardware; VirtualBox guest services are not needed and caused
+  # boot-time device timeouts when the guest driver was missing.
 
   # Networking configuration
   networking = {
@@ -275,40 +272,40 @@ in
         }
       '') //
       (mkVHost "paperless.lan" ''
+        tls internal
         encode zstd gzip
         reverse_proxy 192.168.1.20:8010 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-          # tls internal
       '') //
       (mkVHost "vert.lan" ''
+        tls internal
         encode zstd gzip
         reverse_proxy 192.168.1.20:3001 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-          # tls internal
       '') //
       (mkVHost "openwebui.lan" ''
+        tls internal
         encode zstd gzip
         reverse_proxy 192.168.1.20:3000 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-          # tls internal
       '') //
       (mkVHost "searxng.lan" ''
+        tls internal
         encode zstd gzip
         reverse_proxy 192.168.1.20:8080 {
           header_up Host {host}
           header_up X-Forwarded-Proto {scheme}
           header_up X-Forwarded-For {remote}
         }
-          # tls internal
       '');
   };
 
@@ -439,21 +436,12 @@ in
     };
   };
 
-  # Watchtower container: auto-updates only labeled containers (skips Nextcloud AIO by omitting label)
+  # Watchtower is intentionally disabled here. The host manages its own containers via
+  # explicit systemd/docker-compose services, and the Nix-managed watchtower was repeatedly
+  # failing to connect to the Docker API with the old client-version error seen in the logs.
   virtualisation.oci-containers.backend = "docker";
-  virtualisation.oci-containers.containers.watchtower = {
-    image = "containrrr/watchtower:latest";
-    autoStart = true;
-    volumes = [ "/var/run/docker.sock:/var/run/docker.sock" ];
-    cmd = [
-      "--interval" "3600"          # check hourly
-      "--label-enable"              # only update containers with enable label
-      "--cleanup"                   # remove old images after update
-      "--rolling-restart"           # restart sequentially
-    ];
-  };
 
-    systemd.services.my-auto-upgrade = {
+  systemd.services.my-auto-upgrade = {
       description = "Custom NixOS auto-upgrade (host-specific)";
       serviceConfig.Type = "oneshot";
       script = ''

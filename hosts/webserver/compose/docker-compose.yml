@@ -117,6 +117,20 @@ services:
     networks:
       - backend
 
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_SCHEDULE=0 3 * * *
+      - TZ=UTC
+    networks:
+      - backend
+
 networks:
   backend:
     driver: bridge
